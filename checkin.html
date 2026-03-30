@@ -186,20 +186,17 @@
 
     /* ── CONNECTION INDICATOR ──────────────────────────── */
     #conn-indicator {
-      position: fixed;
-      bottom: calc(4.5rem + env(safe-area-inset-bottom));
+      position: absolute;
       right: 1.2rem;
-      width: 12px; height: 12px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: #374151;
-      z-index: 200;
       transition: background .5s;
-      box-shadow: 0 0 0 3px rgba(0,0,0,.5);
-      display: none;
+      flex-shrink: 0;
     }
-    #conn-indicator.visible     { display: block; }
-    #conn-indicator.ok          { background: #22c55e; }
-    #conn-indicator.err         { background: #ef4444; }
+    #refresh-btn { position: relative; }
+    #conn-indicator.ok  { background: rgba(34, 197, 94, 0.5); }
+    #conn-indicator.err { background: rgba(239, 68, 68, 0.5); }
 
     /* ── SPINNER ───────────────────────────────────────── */
     .spinner {
@@ -261,10 +258,10 @@
     <path d="M3 3v5h5"/>
   </svg>
   Zurücksetzen
+  <div id="conn-indicator"></div>
 </button>
 
-<!-- CONNECTION INDICATOR (overview only) -->
-<div id="conn-indicator" title="Datenbankverbindung"></div>
+
 
 <script>
 const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
@@ -401,7 +398,6 @@ function showTab(tab) {
   document.getElementById('page-checkin').classList.toggle('active', tab === 'checkin');
   document.getElementById('page-overview').classList.toggle('active', tab === 'overview');
   document.getElementById('refresh-btn').classList.toggle('visible', tab === 'overview');
-  document.getElementById('conn-indicator').classList.toggle('visible', tab === 'overview');
   if (tab === 'overview') loadData();
 }
 
@@ -486,7 +482,7 @@ async function submitCheckin() {
     btn.disabled = true;
     btn.classList.remove('ready', 'aa');
     btn.classList.add('done');
-    btn.textContent = `${name}  ·  ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'}  ·  ${LOCATIONS[selectedLoc]}`;
+    btn.textContent = `${name}  —  ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'}  —  ${LOCATIONS[selectedLoc]}`;
     document.getElementById('status-msg').textContent = '';
   } catch(e) {
     console.error(e);
@@ -520,7 +516,7 @@ function renderOverview() {
         ${members.length === 0
           ? '<div class="ov-empty">—</div>'
           : members.map(m =>
-              `<div class="ov-name ${m.role.toLowerCase()}${m.isMe ? ' me' : ''}" title="${m.name}">${m.name}</div>`
+              `<div class="ov-name ${m.role.toLowerCase()}${m.isMe ? ' me' : ''}" title="${m.name}">${m.name} ✓</div>`
             ).join('')}
       </div>
     `;
