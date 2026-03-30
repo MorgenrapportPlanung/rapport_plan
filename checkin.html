@@ -196,6 +196,9 @@
     }
     #conn-dot.ok  { background: rgba(34,197,94,.5); }
     #conn-dot.err { background: rgba(239,68,68,.5); }
+    @media (max-width: 600px) {
+      #edit-toggle span, #refresh-btn span { display: none; }
+    }
 
     /* PASSWORD MODAL */
     #pw-overlay {
@@ -243,7 +246,6 @@
       padding: .4rem .7rem; border-radius: 8px; transition: all .2s;
     }
     #edit-toggle.visible { display: flex; }
-    #edit-toggle.on { color: var(--ua); }
     #edit-toggle svg { width: 16px; height: 16px; flex-shrink: 0; }
 
     .edit-mode .ov-name {
@@ -320,7 +322,7 @@
       <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
       <path d="M3 3v5h5"/>
     </svg>
-    Zurücksetzen
+    <span>Zurücksetzen</span>
   </button>
   <div id="conn-dot"></div>
 </div>
@@ -342,7 +344,22 @@
 const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
 const RESET_HOUR   = 0;
 const RESET_MINUTE = 0;
-const LOCATIONS    = ['Saal 11','Saal 13','Saal 14','Saal 15','Saal 16','Saal 3/19/20','SS Gross','SS Klein'];
+// SS names change by weekday (0=Sun,1=Mon,...,5=Fri,6=Sat)
+const SS_NAMES = {
+  0: ['SS Fuss',  'SS WS'],         // Sonntag (fallback Mo)
+  1: ['SS Fuss',  'SS WS'],         // Montag
+  2: ['SS OE',    'SS Knie'],       // Dienstag
+  3: ['SS Hüfte', 'SS OE'],         // Mittwoch
+  4: ['SS WS',    'SS Fuss (GiZi)'],// Donnerstag
+  5: ['SS Knie',  'SS Hüfte'],      // Freitag
+  6: ['SS Fuss',  'SS WS'],         // Samstag (fallback Mo)
+};
+function getLocations() {
+  const day = new Date().getDay();
+  const ss = SS_NAMES[day] || SS_NAMES[1];
+  return ['Saal 11','Saal 13','Saal 14','Saal 15','Saal 16','Saal 3/19/20', ss[0], ss[1]];
+}
+const LOCATIONS = getLocations();
 const DIVIDER_AFTER = 4;
 
 // Unique browser ID (no hyphens = valid Firebase key)
@@ -623,58 +640,91 @@ function toggleEditMode() {
   renderOverview(); // re-render with/without drag handles
 }
 
+async function moveEntry(uid, newLoc) {
+  const entry = currentData?.entries?.[uid];
+  if (!entry || entry.loc === newLoc) return;
+  try {
+    const updated = { ...entry, loc: newLoc };
+    const res = await fetch(`${FIREBASE_URL}/checkin/entries/${uid}.json`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(updated),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    currentData.entries[uid] = updated;
+    renderOverview();
+  } catch(err) { console.error('move failed:', err); alert('Fehler beim Verschieben'); }
+}
+
 function initDragDrop() {
   if (!editMode) return;
-  const cols = document.getElementById('ov-cols');
-  cols.classList.add('edit-mode');
+  document.getElementById('ov-cols').classList.add('edit-mode');
 
-  // Make chips draggable
+  // ── MOUSE drag-and-drop ─────────────────────────────
   document.querySelectorAll('.ov-name[data-uid]').forEach(chip => {
     chip.draggable = true;
     chip.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', chip.dataset.uid);
+      e.dataTransfer.effectAllowed = 'move';
       chip.classList.add('dragging');
-      // Transparent drag image — hides the white box on mobile
-      const ghost = document.createElement('div');
-      ghost.style.cssText = 'position:fixed;top:-9999px;opacity:0;';
-      document.body.appendChild(ghost);
-      e.dataTransfer.setDragImage(ghost, 0, 0);
-      setTimeout(() => ghost.remove(), 0);
     });
-    chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+    chip.addEventListener('dragend', () => {
+      chip.classList.remove('dragging');
+      document.querySelectorAll('.ov-col').forEach(c => c.classList.remove('drag-over'));
+    });
   });
 
-  // Make columns drop targets
   document.querySelectorAll('.ov-col[data-loc]').forEach(col => {
-    col.addEventListener('dragover', e => {
-      e.preventDefault();
-      col.classList.add('drag-over');
-    });
-    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
-    col.addEventListener('drop', async e => {
+    col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', e => { if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over'); });
+    col.addEventListener('drop', e => {
       e.preventDefault();
       col.classList.remove('drag-over');
-      const uid = e.dataTransfer.getData('text/plain');
-      const newLoc = parseInt(col.dataset.loc);
-      if (!uid || isNaN(newLoc)) return;
-      const entry = currentData?.entries?.[uid];
-      if (!entry || entry.loc === newLoc) return;
+      moveEntry(e.dataTransfer.getData('text/plain'), parseInt(col.dataset.loc));
+    });
+  });
 
-      // Update Firebase immediately
-      try {
-        const updated = { ...entry, loc: newLoc };
-        const res = await fetch(`${FIREBASE_URL}/checkin/entries/${uid}.json`, {
-          method: 'PUT', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(updated),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        // Update local state
-        currentData.entries[uid] = updated;
-        renderOverview();
-      } catch(err) {
-        console.error('drag-drop save failed:', err);
-        alert('Fehler beim Verschieben');
-      }
+  // ── TOUCH drag-and-drop ─────────────────────────────
+  let touchUid = null, touchClone = null;
+
+  document.querySelectorAll('.ov-name[data-uid]').forEach(chip => {
+    chip.addEventListener('touchstart', e => {
+      if (!editMode) return;
+      touchUid = chip.dataset.uid;
+      const rect = chip.getBoundingClientRect();
+      // Create visible clone following finger
+      touchClone = chip.cloneNode(true);
+      touchClone.style.cssText = `position:fixed;z-index:9999;pointer-events:none;
+        width:${rect.width}px;opacity:.85;border-radius:6px;
+        left:${rect.left}px;top:${rect.top}px;`;
+      document.body.appendChild(touchClone);
+      chip.classList.add('dragging');
+    }, { passive: true });
+
+    chip.addEventListener('touchmove', e => {
+      if (!touchClone) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      touchClone.style.left = (t.clientX - touchClone.offsetWidth/2) + 'px';
+      touchClone.style.top  = (t.clientY - touchClone.offsetHeight/2) + 'px';
+      // Highlight col under finger
+      touchClone.style.display = 'none';
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      touchClone.style.display = '';
+      document.querySelectorAll('.ov-col').forEach(c => c.classList.remove('drag-over'));
+      const col = el?.closest('.ov-col[data-loc]');
+      if (col) col.classList.add('drag-over');
+    }, { passive: false });
+
+    chip.addEventListener('touchend', e => {
+      if (!touchClone || !touchUid) return;
+      const t = e.changedTouches[0];
+      touchClone.remove(); touchClone = null;
+      document.querySelectorAll('.ov-col').forEach(c => c.classList.remove('drag-over'));
+      document.querySelectorAll('.ov-name').forEach(c => c.classList.remove('dragging'));
+      // Find col under finger
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      const col = el?.closest('.ov-col[data-loc]');
+      if (col) moveEntry(touchUid, parseInt(col.dataset.loc));
+      touchUid = null;
     });
   });
 }
