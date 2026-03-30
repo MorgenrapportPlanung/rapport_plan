@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morgen Check-in</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #0f1117;
+      --surface: #181c27;
+      --border:  #2a2f3d;
+      --text:    #e8eaf0;
+      --muted:   #6b7280;
+      --ua:      #fbbf24;
+      --aa:      #34d399;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100dvh; display: flex; flex-direction: column;
+    }
+    #clock-bar {
+      font-family: 'DM Mono', monospace; font-size: .72rem;
+      color: var(--muted); text-align: right; padding: .5rem 1.2rem;
+      border-bottom: 1px solid var(--border); background: var(--surface);
+    }
+
+    /* TABS */
+    .tab-bar {
+      display: flex; background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .tab-btn {
+      flex: 1; padding: .9rem 1rem; background: none; border: none;
+      color: var(--muted); font-family: 'DM Mono', monospace;
+      font-size: .73rem; letter-spacing: .12em; text-transform: uppercase;
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: all .2s;
+    }
+    .tab-btn.active { color: var(--ua); border-bottom-color: var(--ua); }
+
+    /* PAGES */
+    .page { display: none; flex: 1; }
+    .page.active { display: flex; flex-direction: column; }
+
+    /* CHECK-IN */
+    #page-checkin { align-items: center; padding: 2rem 1rem 4rem; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.6rem;
+      width: 100%; max-width: 500px; margin-bottom: 1.1rem;
+    }
+    .card-title {
+      font-family: 'DM Mono', monospace; font-size: .67rem;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1rem;
+    }
+    input[type="text"] {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 1.05rem; padding: .65rem 1rem; outline: none; transition: border-color .2s;
+    }
+    input[type="text"]:focus { border-color: var(--ua); }
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    .role-grid { display: flex; gap: .7rem; }
+    .role-btn {
+      flex: 1; padding: .85rem 1rem; border-radius: 10px;
+      border: 2px solid var(--border); background: var(--bg);
+      color: var(--muted); font-family: 'DM Mono', monospace;
+      font-size: 1rem; font-weight: 500; cursor: pointer; transition: all .18s;
+    }
+    .role-btn:hover { border-color: var(--muted); color: var(--text); }
+    .role-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
+    .role-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
+
+    .loc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .55rem; }
+    .loc-btn {
+      padding: .8rem .5rem; border-radius: 10px;
+      border: 2px solid var(--border); background: var(--bg);
+      color: var(--muted); font-family: 'DM Sans', sans-serif;
+      font-size: .9rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
+    }
+    .loc-btn:hover { border-color: var(--muted); color: var(--text); }
+    .loc-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
+    .loc-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
+
+    #submit-btn {
+      width: 100%; max-width: 500px; padding: 1rem; border-radius: 10px;
+      border: none; background: #1e293b; color: var(--muted);
+      font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600;
+      cursor: not-allowed; transition: all .2s;
+    }
+    #submit-btn.ready { background: var(--ua); color: #0f1117; cursor: pointer; }
+    #submit-btn.ready.aa { background: var(--aa); }
+    #submit-btn:active { transform: scale(.98); }
+
+    #status-msg {
+      max-width: 500px; width: 100%; text-align: center;
+      font-size: .85rem; color: var(--muted); min-height: 1.6em; margin-top: .7rem;
+    }
+    #status-msg.ok  { color: var(--aa); }
+    #status-msg.err { color: #f87171; }
+
+    /* OVERVIEW */
+    #page-overview { padding: 1.4rem 1.2rem 4rem; flex: 1; }
+    .ov-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; }
+    .ov-meta-title {
+      font-family: 'DM Mono', monospace; font-size: .68rem;
+      letter-spacing: .13em; text-transform: uppercase; color: var(--muted);
+    }
+    #last-updated { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--muted); }
+    .legend { display: flex; gap: 1.2rem; margin-bottom: 1.1rem; font-size: .78rem; color: var(--muted); }
+    .legend span { display: flex; align-items: center; gap: .35rem; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .ov-cols {
+      display: grid; grid-template-columns: repeat(8, 1fr); gap: .6rem; width: 100%;
+    }
+    @media (max-width: 900px) { .ov-cols { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 500px) { .ov-cols { grid-template-columns: repeat(2, 1fr); } }
+
+    .ov-col {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; min-height: 160px; padding: .75rem .55rem;
+      display: flex; flex-direction: column;
+    }
+    .ov-col-head {
+      font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--muted); text-align: center;
+      padding-bottom: .55rem; margin-bottom: .55rem;
+      border-bottom: 1px solid var(--border); line-height: 1.4; flex-shrink: 0;
+    }
+    .ov-names { flex: 1; }
+    .ov-name {
+      font-size: .78rem; font-weight: 500; padding: .22rem .4rem;
+      border-radius: 5px; margin-bottom: .2rem; text-align: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ov-name.ua { color: var(--ua); background: #28200a; }
+    .ov-name.aa { color: var(--aa); background: #0f2a1e; }
+    .ov-name.me { outline: 1px solid currentColor; }
+    .ov-empty   { color: var(--muted); font-size: .72rem; text-align: center; margin-top: .4rem; }
+    .ov-count {
+      display: flex; justify-content: center; gap: .4rem; margin-top: .5rem;
+      font-family: 'DM Mono', monospace; font-size: .65rem; flex-shrink: 0;
+    }
+    .cnt-ua { color: var(--ua); }
+    .cnt-aa { color: var(--aa); }
+
+    .spinner {
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.12); border-top-color: currentColor;
+      border-radius: 50%; animation: spin .6s linear infinite;
+      vertical-align: middle; margin-right: .35rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="clock-bar">—</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-checkin" onclick="showTab('checkin')">Check-in</button>
+  <button class="tab-btn" id="tab-overview" onclick="showTab('overview')">Übersicht</button>
+</div>
+
+<div id="page-checkin" class="page active">
+  <div class="card">
+    <div class="card-title">Schritt 1 — Name</div>
+    <input type="text" id="name-input" placeholder="Dein Name…" autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="card">
+    <div class="card-title">Schritt 2 — Funktion</div>
+    <div class="role-grid">
+      <button class="role-btn" data-role="UA" onclick="selectRole('UA')">UA / UÄ</button>
+      <button class="role-btn" data-role="AA" onclick="selectRole('AA')">AA / AÄ</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Schritt 3 — Ort</div>
+    <div class="loc-grid" id="loc-grid"></div>
+  </div>
+  <button id="submit-btn" onclick="submitCheckin()" disabled>Eintragen</button>
+  <div id="status-msg"></div>
+</div>
+
+<div id="page-overview" class="page">
+  <div class="ov-meta">
+    <span class="ov-meta-title">Belegung heute</span>
+    <span id="last-updated">—</span>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--ua)"></span>UA / UÄ</span>
+    <span><span class="dot" style="background:var(--aa)"></span>AA / AÄ</span>
+  </div>
+  <div class="ov-cols" id="ov-cols"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  KONFIGURATION — nur diese Zeile anpassen:
+// ══════════════════════════════════════════════════════
+const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
+// Beispiel: 'https://morgenrapport-abc12-default-rtdb.europe-west1.firebasedatabase.app'
+// ══════════════════════════════════════════════════════
+
+const RESET_HOUR   = 10;
+const RESET_MINUTE = 0;
+const LOCATIONS = [
+  'Saal 11', 'Saal 13', 'Saal 14', 'Saal 15',
+  'Saal 16', 'Saal 3/19/20', 'SS Gross', 'SS Klein',
+];
+
+// Stable browser ID
+let myId = localStorage.getItem('cid');
+if (!myId) {
+  myId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now();
+  localStorage.setItem('cid', myId);
+}
+
+let selectedRole = null;
+let selectedLoc  = null;
+let currentData  = null;
+
+// ── Boot ───────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  buildLocGrid();
+  const saved = localStorage.getItem('checkin_name');
+  if (saved) document.getElementById('name-input').value = saved;
+  document.getElementById('name-input').addEventListener('input', updateBtn);
+  startClock();
+  // Firebase realtime listener — updates instantly when anyone checks in
+  startRealtimeListener();
+});
+
+// ── Clock ──────────────────────────────────────────────
+function startClock() {
+  const el = document.getElementById('clock-bar');
+  const tick = () => {
+    el.textContent = new Date().toLocaleString('de-CH', {
+      weekday: 'long', day: '2-digit', month: '2-digit',
+      year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+  };
+  tick(); setInterval(tick, 1000);
+}
+
+// ── Firebase realtime listener (SSE) ──────────────────
+function startRealtimeListener() {
+  const url = `${FIREBASE_URL}/checkin.json`;
+  const es = new EventSource(url);
+  es.addEventListener('put', e => {
+    const payload = JSON.parse(e.data);
+    currentData = payload.data || emptyData();
+    maybeReset().then(() => renderOverview());
+  });
+  es.addEventListener('patch', e => {
+    const patch = JSON.parse(e.data).data;
+    if (currentData && patch) {
+      Object.assign(currentData.entries || {}, patch.entries || {});
+      renderOverview();
+    }
+  });
+  es.onerror = () => {
+    // Fallback: poll every 15s if SSE fails
+    es.close();
+    loadData();
+    setInterval(loadData, 15_000);
+  };
+}
+
+// ── Fallback: plain fetch ──────────────────────────────
+async function loadData() {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/checkin.json?t=${Date.now()}`);
+    currentData = (await res.json()) || emptyData();
+    await maybeReset();
+    renderOverview();
+  } catch(e) { console.error('load:', e); }
+}
+
+// ── Write to Firebase ──────────────────────────────────
+async function saveData() {
+  const res = await fetch(`${FIREBASE_URL}/checkin.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(currentData),
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+async function saveEntry(entry) {
+  // PATCH only the single entry — faster and avoids overwrite conflicts
+  const res = await fetch(`${FIREBASE_URL}/checkin/entries/${myId}.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry),
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+// ── Data helpers ───────────────────────────────────────
+function emptyData() { return { lastReset: todayStr(), entries: {} }; }
+function todayStr()  { return new Date().toISOString().slice(0, 10); }
+
+async function maybeReset() {
+  if (!currentData) return;
+  const now  = new Date();
+  const past = now.getHours() > RESET_HOUR
+    || (now.getHours() === RESET_HOUR && now.getMinutes() >= RESET_MINUTE);
+  if (currentData.lastReset !== todayStr() && past) {
+    currentData = emptyData();
+    await saveData();
+  }
+}
+
+// ── UI ─────────────────────────────────────────────────
+function showTab(tab) {
+  document.getElementById('tab-checkin').classList.toggle('active', tab === 'checkin');
+  document.getElementById('tab-overview').classList.toggle('active', tab === 'overview');
+  document.getElementById('page-checkin').classList.toggle('active', tab === 'checkin');
+  document.getElementById('page-overview').classList.toggle('active', tab === 'overview');
+}
+
+function buildLocGrid() {
+  const grid = document.getElementById('loc-grid');
+  LOCATIONS.forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'loc-btn'; btn.id = `lb-${i}`;
+    btn.textContent = name; btn.onclick = () => selectLoc(i);
+    grid.appendChild(btn);
+  });
+}
+
+function selectRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.className = 'role-btn');
+  document.querySelector(`[data-role="${role}"]`).classList.add(role === 'UA' ? 'sel-ua' : 'sel-aa');
+  if (selectedLoc !== null) paintLoc(selectedLoc);
+  updateBtn();
+}
+
+function selectLoc(idx) {
+  selectedLoc = idx;
+  document.querySelectorAll('.loc-btn').forEach(b => b.className = 'loc-btn');
+  paintLoc(idx); updateBtn();
+}
+
+function paintLoc(idx) {
+  const cls = selectedRole === 'UA' ? 'sel-ua' : selectedRole === 'AA' ? 'sel-aa' : '';
+  const btn = document.getElementById(`lb-${idx}`);
+  if (btn && cls) btn.classList.add(cls);
+}
+
+function updateBtn() {
+  const name = document.getElementById('name-input').value.trim();
+  const btn  = document.getElementById('submit-btn');
+  const ok   = !!(name && selectedRole && selectedLoc !== null);
+  btn.disabled = !ok;
+  btn.classList.toggle('ready', ok);
+  if (ok) btn.classList.toggle('aa', selectedRole === 'AA');
+  else btn.classList.remove('aa');
+  btn.textContent = ok
+    ? `Als ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'} in „${LOCATIONS[selectedLoc]}" eintragen`
+    : 'Eintragen';
+}
+
+async function submitCheckin() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name || selectedRole === null || selectedLoc === null) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Speichern…';
+  localStorage.setItem('checkin_name', name);
+  try {
+    await saveEntry({ name, role: selectedRole, loc: selectedLoc, ts: Date.now() });
+    // Also update lastReset if needed
+    await fetch(`${FIREBASE_URL}/checkin/lastReset.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(todayStr()),
+    });
+    setStatus(`✓ ${name} in „${LOCATIONS[selectedLoc]}" eingetragen`, 'ok');
+  } catch(e) {
+    console.error(e);
+    setStatus('Fehler – bitte nochmal versuchen', 'err');
+  } finally {
+    btn.disabled = false; updateBtn();
+  }
+}
+
+function renderOverview() {
+  const wrap = document.getElementById('ov-cols');
+  wrap.innerHTML = '';
+  const buckets = LOCATIONS.map(() => []);
+  const entries = currentData?.entries || {};
+  Object.entries(entries).forEach(([uid, e]) => {
+    if (e && e.loc >= 0 && e.loc < LOCATIONS.length)
+      buckets[e.loc].push({ name: e.name, role: e.role, isMe: uid === myId });
+  });
+  LOCATIONS.forEach((locName, i) => {
+    const members = buckets[i];
+    const uaCount = members.filter(m => m.role === 'UA').length;
+    const aaCount = members.filter(m => m.role === 'AA').length;
+    const col = document.createElement('div');
+    col.className = 'ov-col';
+    col.innerHTML = `
+      <div class="ov-col-head">${locName}</div>
+      <div class="ov-names">
+        ${members.length === 0
+          ? '<div class="ov-empty">—</div>'
+          : members.map(m =>
+              `<div class="ov-name ${m.role.toLowerCase()}${m.isMe ? ' me' : ''}" title="${m.name}">${m.name}</div>`
+            ).join('')}
+      </div>
+      ${(uaCount || aaCount) ? `
+        <div class="ov-count">
+          ${uaCount ? `<span class="cnt-ua">${uaCount}&nbsp;UA</span>` : ''}
+          ${aaCount ? `<span class="cnt-aa">${aaCount}&nbsp;AA</span>` : ''}
+        </div>` : ''}
+    `;
+    wrap.appendChild(col);
+  });
+  document.getElementById('last-updated').textContent =
+    'Stand ' + new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+}
+
+function setStatus(msg, type = '') {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg; el.className = type;
+  if (type === 'ok') setTimeout(() => { el.textContent = ''; el.className = ''; }, 4000);
+}
+</script>
+</body>
+</html>
