@@ -214,6 +214,32 @@
       font-size: 1.1rem; line-height: 1;
     }
 
+
+    /* DRAG & DROP EDIT MODE */
+    #edit-toggle {
+      display: none;
+      position: absolute; left: 1.2rem;
+      display: flex; align-items: center; gap: .5rem;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-family: var(--sf); font-size: .9rem;
+      padding: .4rem .7rem; border-radius: 8px; transition: all .2s;
+    }
+    #edit-toggle.visible { display: flex; }
+    #edit-toggle.on { color: var(--ua); }
+    #edit-toggle svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .edit-mode .ov-name {
+      cursor: grab; opacity: .9;
+    }
+    .edit-mode .ov-name:active { cursor: grabbing; }
+    .edit-mode .ov-col {
+      border-style: dashed; border-color: var(--border-light);
+      transition: border-color .15s, background .15s;
+    }
+    .edit-mode .ov-col.drag-over {
+      border-color: var(--ua); background: #0d1f38;
+    }
+    .ov-name.dragging { opacity: .4; }
     /* SPINNER */
     .spinner {
       display: inline-block; width: 16px; height: 16px;
@@ -266,6 +292,10 @@
 </div>
 
 <!-- FOOTER: refresh + connection dot (overview only) -->
+<button id="edit-toggle" onclick="toggleEditMode()" title="Verschieben">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+  Verschieben
+</button>
 <button id="refresh-btn" onclick="openPwModal()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -455,6 +485,8 @@ function showTab(tab) {
   document.getElementById('page-checkin').classList.toggle('active', tab === 'checkin');
   document.getElementById('page-overview').classList.toggle('active', tab === 'overview');
   document.getElementById('refresh-btn').classList.toggle('visible', tab === 'overview');
+  document.getElementById('edit-toggle').classList.toggle('visible', tab === 'overview');
+  if (tab !== 'overview' && editMode) { editMode = false; document.getElementById('edit-toggle').classList.remove('on'); }
   if (tab === 'overview') loadData();
 }
 
@@ -559,6 +591,69 @@ async function submitCheckin() {
   }
 }
 
+
+// ── Edit / drag-drop mode ──────────────────────────────
+let editMode = false;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  const btn = document.getElementById('edit-toggle');
+  btn.classList.toggle('on', editMode);
+  btn.querySelector('svg').style.stroke = editMode ? 'var(--ua)' : '';
+  document.getElementById('ov-cols').classList.toggle('edit-mode', editMode);
+  renderOverview(); // re-render with/without drag handles
+}
+
+function initDragDrop() {
+  if (!editMode) return;
+  const cols = document.getElementById('ov-cols');
+  cols.classList.add('edit-mode');
+
+  // Make chips draggable
+  document.querySelectorAll('.ov-name[data-uid]').forEach(chip => {
+    chip.draggable = true;
+    chip.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', chip.dataset.uid);
+      chip.classList.add('dragging');
+    });
+    chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+  });
+
+  // Make columns drop targets
+  document.querySelectorAll('.ov-col[data-loc]').forEach(col => {
+    col.addEventListener('dragover', e => {
+      e.preventDefault();
+      col.classList.add('drag-over');
+    });
+    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    col.addEventListener('drop', async e => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const uid = e.dataTransfer.getData('text/plain');
+      const newLoc = parseInt(col.dataset.loc);
+      if (!uid || isNaN(newLoc)) return;
+      const entry = currentData?.entries?.[uid];
+      if (!entry || entry.loc === newLoc) return;
+
+      // Update Firebase immediately
+      try {
+        const updated = { ...entry, loc: newLoc };
+        const res = await fetch(`${FIREBASE_URL}/checkin/entries/${uid}.json`, {
+          method: 'PUT', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(updated),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        // Update local state
+        currentData.entries[uid] = updated;
+        renderOverview();
+      } catch(err) {
+        console.error('drag-drop save failed:', err);
+        alert('Fehler beim Verschieben');
+      }
+    });
+  });
+}
+
 // ── Render overview ────────────────────────────────────
 function renderOverview() {
   const wrap = document.getElementById('ov-cols');
@@ -567,7 +662,7 @@ function renderOverview() {
   const entries = currentData?.entries || {};
   Object.entries(entries).forEach(([uid, e]) => {
     if (e && e.loc >= 0 && e.loc < LOCATIONS.length)
-      buckets[e.loc].push({ name: e.name, role: e.role, isMe: uid === myId });
+      buckets[e.loc].push({ name: e.name, role: e.role, isMe: uid === myId, uid });
   });
   LOCATIONS.forEach((locName, i) => {
     if (i === DIVIDER_AFTER + 1) {
@@ -578,15 +673,18 @@ function renderOverview() {
     const members = buckets[i];
     const col = document.createElement('div');
     col.className = 'ov-col';
+    col.dataset.loc = i;
     col.innerHTML = `
       <div class="ov-col-head">${locName}</div>
       <div class="ov-names">
         ${members.length === 0
           ? '<div class="ov-empty">—</div>'
-          : members.map(m=>`<div class="ov-name ${m.role.toLowerCase()}${m.isMe?' me':''}" title="${m.name}">${m.name}</div>`).join('')}
+          : members.map(m=>`<div class="ov-name ${m.role.toLowerCase()}${m.isMe?' me':''}" data-uid="${m.uid}" title="${m.name}">${m.name}</div>`).join('')}
       </div>`;
     wrap.appendChild(col);
   });
+  // Init drag-drop if edit mode active
+  if (editMode) initDragDrop();
 }
 </script>
 </body>
