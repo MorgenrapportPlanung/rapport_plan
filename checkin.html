@@ -2,8 +2,19 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Morgen Check-in</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#181c27">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rapport Check-In">
+  <link rel="apple-touch-icon" href="icon.svg">
+
+  <title>Rapport Check-In</title>
   <style>
     :root {
       --bg:           #0f1117;
@@ -23,6 +34,9 @@
       background: var(--bg); color: var(--text);
       font-family: var(--sf); font-size: 20px;
       min-height: 100dvh; display: flex; flex-direction: column;
+      /* Safe area for notch/home-bar */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     /* ── CLOCK ─────────────────────────────────────────── */
@@ -65,7 +79,7 @@
 
     .card-title {
       font-family: var(--sf-mono); font-size: .9rem;
-      letter-spacing: .13em; text-transform: uppercase;
+      letter-spacing: .04em; text-transform: none;
       color: var(--muted); margin-bottom: 1.1rem;
     }
 
@@ -91,7 +105,6 @@
 
     /* Location grid */
     .loc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .65rem; }
-
     .loc-btn {
       padding: 1rem .6rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
@@ -101,15 +114,10 @@
     .loc-btn:hover { border-color: var(--muted); }
     .loc-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
     .loc-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
-
-    /* Extra spacing around divider */
     .loc-btn.before-divider { margin-bottom: 1rem; }
     .loc-btn.after-divider  { margin-top: 1rem; }
-
     .loc-divider {
-      grid-column: 1 / -1;
-      height: 1px;
-      background: var(--border-light);
+      grid-column: 1 / -1; height: 1px; background: var(--border-light);
     }
 
     /* Submit */
@@ -135,16 +143,12 @@
     /* ── OVERVIEW ──────────────────────────────────────── */
     #page-overview { padding: 1.5rem 0 7rem; flex: 1; display: flex; flex-direction: column; }
 
-    .ov-top {
-      padding: 0 1.2rem;
-    }
-
+    .ov-top { padding: 0 1.2rem; }
     .ov-header { display: flex; justify-content: center; margin-bottom: 1.1rem; }
     #last-updated {
       font-family: var(--sf); font-size: 1.3rem; font-weight: 600;
       color: var(--text); letter-spacing: -0.01em;
     }
-
     .legend {
       display: flex; gap: 1.5rem; margin-bottom: 1.2rem;
       font-size: 1.1rem; color: var(--text); font-weight: 500;
@@ -152,46 +156,43 @@
     .legend span { display: flex; align-items: center; gap: .45rem; }
     .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
-    /* Desktop: all 8 in one row, scroll horizontally if needed */
+    /* Desktop: one row, horizontal scroll */
     .ov-scroll-wrap {
-      overflow-x: auto;
-      padding: 0 1.2rem 1rem;
+      overflow-x: auto; padding: 0 1.2rem 1rem;
       -webkit-overflow-scrolling: touch;
     }
-
     .ov-cols {
-      display: flex;
-      flex-direction: row;
-      gap: 0;
-      width: max-content; /* shrink to fit, but allow horizontal scroll */
-      min-width: 100%;
+      display: flex; flex-direction: row;
+      gap: 0; width: max-content; min-width: 100%;
     }
-
     .ov-col {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 12px; min-height: 160px;
       padding: .85rem .65rem;
       display: flex; flex-direction: column;
-      flex: 1;
-      min-width: 90px;
+      flex: 1; min-width: 100px;
     }
     .ov-col + .ov-col { margin-left: .7rem; }
 
-    /* Divider between Saal 16 and Saal 3/19/20 */
+    /* Divider: white, double margin */
     .ov-col-divider {
       width: 1px;
-      background: var(--border-light);
-      margin: 0 .5rem;
+      background: var(--text);
+      margin: 0 1.4rem;
       align-self: stretch;
       flex-shrink: 0;
+      opacity: 0.5;
     }
 
+    /* Column header: white, same size as role buttons, sentence case */
     .ov-col-head {
-      font-family: var(--sf-mono); font-size: .82rem; letter-spacing: .05em;
-      text-transform: uppercase; color: var(--muted); text-align: center;
+      font-family: var(--sf); font-size: 1.3rem; font-weight: 600;
+      color: var(--text); text-align: center;
       padding-bottom: .6rem; margin-bottom: .6rem;
-      border-bottom: 1px solid var(--border); line-height: 1.4; flex-shrink: 0;
+      border-bottom: 1px solid var(--border); line-height: 1.3; flex-shrink: 0;
+      text-transform: none; letter-spacing: 0;
     }
+
     .ov-names { flex: 1; }
     .ov-name {
       font-size: 1rem; font-weight: 500; padding: .28rem .5rem;
@@ -207,18 +208,17 @@
     @media (max-width: 600px) {
       .ov-scroll-wrap { overflow-x: visible; padding: 0 1rem 1rem; }
       .ov-cols {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        width: 100%;
-        gap: .6rem;
+        display: grid; grid-template-columns: repeat(2, 1fr);
+        width: 100%; gap: .6rem;
       }
       .ov-col { margin-left: 0 !important; min-width: 0; flex: unset; }
       .ov-col-divider { display: none; }
     }
 
-    /* ── REFRESH BUTTON (only on overview) ─────────────── */
+    /* ── REFRESH BUTTON ────────────────────────────────── */
     #refresh-btn {
-      position: fixed; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: calc(1.8rem + env(safe-area-inset-bottom));
+      left: 50%; transform: translateX(-50%);
       display: none; align-items: center; gap: .5rem;
       background: none; border: none; cursor: pointer;
       color: var(--muted); font-family: var(--sf); font-size: 1rem;
@@ -283,7 +283,7 @@
   </div>
 </div>
 
-<!-- REFRESH (only visible on overview tab) -->
+<!-- REFRESH (only on overview) -->
 <button id="refresh-btn" onclick="triggerRefresh()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -293,14 +293,14 @@
 </button>
 
 <script>
-const FIREBASE_URL  = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
-const RESET_HOUR    = 0;   // Mitternacht
-const RESET_MINUTE  = 0;
+const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
+const RESET_HOUR   = 0;
+const RESET_MINUTE = 0;
 const LOCATIONS = [
   'Saal 11', 'Saal 13', 'Saal 14', 'Saal 15',
   'Saal 16', 'Saal 3/19/20', 'SS Gross', 'SS Klein',
 ];
-const DIVIDER_AFTER = 4; // insert divider after index 4 (Saal 16)
+const DIVIDER_AFTER = 4; // after Saal 16
 
 let myId = localStorage.getItem('cid');
 if (!myId) {
@@ -320,6 +320,11 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('name-input').addEventListener('input', updateBtn);
   startClock();
   startRealtimeListener();
+
+  // Register service worker for PWA offline support
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 });
 
 // ── Clock ──────────────────────────────────────────────
@@ -407,22 +412,19 @@ function showTab(tab) {
   document.getElementById('tab-overview').classList.toggle('active', tab === 'overview');
   document.getElementById('page-checkin').classList.toggle('active', tab === 'checkin');
   document.getElementById('page-overview').classList.toggle('active', tab === 'overview');
-  // Refresh button only visible on overview
   document.getElementById('refresh-btn').classList.toggle('visible', tab === 'overview');
   if (tab === 'overview') loadData();
 }
 
-// ── Build location grid ────────────────────────────────
+// ── Location grid ──────────────────────────────────────
 function buildLocGrid() {
   const grid = document.getElementById('loc-grid');
   LOCATIONS.forEach((name, i) => {
     if (i === DIVIDER_AFTER + 1) {
-      // Extra bottom margin on the two buttons before divider
-      const prevBtns = grid.querySelectorAll('.loc-btn');
-      prevBtns.forEach(b => {
-        if (b.id === `lb-${DIVIDER_AFTER - 1}` || b.id === `lb-${DIVIDER_AFTER}`) {
+      // Mark last two buttons before divider
+      grid.querySelectorAll('.loc-btn').forEach(b => {
+        if (b.id === `lb-${DIVIDER_AFTER - 1}` || b.id === `lb-${DIVIDER_AFTER}`)
           b.classList.add('before-divider');
-        }
       });
       const div = document.createElement('div');
       div.className = 'loc-divider';
@@ -431,7 +433,8 @@ function buildLocGrid() {
     const btn = document.createElement('button');
     btn.className = 'loc-btn'; btn.id = `lb-${i}`;
     btn.textContent = name;
-    if (i === DIVIDER_AFTER + 1 || i === DIVIDER_AFTER + 2) btn.classList.add('after-divider');
+    if (i === DIVIDER_AFTER + 1 || i === DIVIDER_AFTER + 2)
+      btn.classList.add('after-divider');
     btn.onclick = () => selectLoc(i);
     grid.appendChild(btn);
   });
@@ -447,9 +450,7 @@ function selectRole(role) {
 
 function selectLoc(idx) {
   selectedLoc = idx;
-  document.querySelectorAll('.loc-btn').forEach(b => {
-    b.classList.remove('sel-ua', 'sel-aa');
-  });
+  document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('sel-ua', 'sel-aa'));
   paintLoc(idx); updateBtn();
 }
 
