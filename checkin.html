@@ -299,7 +299,7 @@
     <div class="card-title">Schritt 3 — Ort</div>
     <div class="loc-grid" id="loc-grid"></div>
   </div>
-  <button id="submit-btn" onclick="submitCheckin()" disabled>Eintragen</button>
+  <button id="submit-btn" onclick="submitCheckin()" disabled>Check-in</button>
   <div id="status-msg"></div>
 </div>
 
@@ -351,7 +351,7 @@ const DIVIDER_AFTER = 4;
 
 let myId = localStorage.getItem('cid');
 if (!myId) {
-  myId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now();
+  myId = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now()).replace(/-/g, '');
   localStorage.setItem('cid', myId);
 }
 
@@ -402,7 +402,7 @@ function startRealtimeListener() {
     setConn(true);
     const patch = JSON.parse(e.data).data;
     if (currentData && patch) {
-      if (patch.entries) Object.assign(currentData.entries, patch.entries);
+      if (patch.entries) { if (!currentData.entries) currentData.entries = {}; Object.assign(currentData.entries, patch.entries); }
       renderOverview();
     }
   });
@@ -550,8 +550,8 @@ function updateBtn() {
   if (ok) btn.classList.toggle('aa', selectedRole === 'AA');
   else btn.classList.remove('aa');
   btn.textContent = ok
-    ? `Als ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'} in „${LOCATIONS[selectedLoc]}" eintragen`
-    : 'Eintragen';
+    ? `Check-in: ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'} — ${LOCATIONS[selectedLoc]}`
+    : 'Check-in';
 }
 
 // ── Submit ─────────────────────────────────────────────
