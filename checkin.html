@@ -299,7 +299,7 @@
     <div class="card-title">Schritt 3 — Ort</div>
     <div class="loc-grid" id="loc-grid"></div>
   </div>
-  <button id="submit-btn" onclick="submitCheckin()" disabled>Check-in</button>
+  <button id="submit-btn" onclick="submitCheckin()" disabled>Check-In</button>
   <div id="status-msg"></div>
 </div>
 
@@ -418,6 +418,7 @@ async function loadData() {
   try {
     const res = await fetch(`${FIREBASE_URL}/checkin.json?t=${Date.now()}`);
     currentData = (await res.json()) || emptyData();
+    }
     await maybeReset();
     renderOverview();
     setConn(true);
@@ -550,8 +551,8 @@ function updateBtn() {
   if (ok) btn.classList.toggle('aa', selectedRole === 'AA');
   else btn.classList.remove('aa');
   btn.textContent = ok
-    ? `Check-in: ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'} — ${LOCATIONS[selectedLoc]}`
-    : 'Check-in';
+    ? `Check-In: ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'} — ${LOCATIONS[selectedLoc]}`
+    : 'Check-In';
 }
 
 // ── Submit ─────────────────────────────────────────────
@@ -568,14 +569,14 @@ async function submitCheckin() {
   try {
     // PATCH only this user's entry — no race condition with other users
     const entry = { name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
-    const res = await fetchT(`${FIREBASE_URL}/checkin/entries/${myId}.json`, {
+    const res = await fetch(`${FIREBASE_URL}/checkin/entries/${myId}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(entry),
     });
     if (!res.ok) throw new Error(await res.text());
     // Also set lastReset
-    await fetchT(`${FIREBASE_URL}/checkin/lastReset.json`, {
+    await fetch(`${FIREBASE_URL}/checkin/lastReset.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(todayStr()),
@@ -583,7 +584,10 @@ async function submitCheckin() {
     // Update local state without overwriting others
     if (!currentData) currentData = emptyData();
     if (!currentData.entries) currentData.entries = {};
+    if (!currentData) currentData = emptyData();
+    if (!currentData.entries) currentData.entries = {};
     currentData.entries[myId] = entry;
+    await loadData(); // reload from Firebase to confirm
     renderOverview();
 
     hasCheckedIn = true;
