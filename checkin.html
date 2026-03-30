@@ -78,14 +78,14 @@
     #card-loc { border-color: var(--border-light); }
 
     .card-title {
-      font-family: var(--sf-mono); font-size: .9rem;
+      font-family: var(--sf-mono); font-size: 1.3rem;
       letter-spacing: .04em; text-transform: none;
       color: var(--muted); margin-bottom: 1.1rem;
     }
 
     input[type="text"] {
       width: 100%; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text); font-family: var(--sf);
+      border-radius: 10px; color: var(--muted); font-family: var(--sf);
       font-size: 1.3rem; padding: .8rem 1.1rem; outline: none; transition: border-color .2s;
     }
     input[type="text"]:focus { border-color: var(--ua); }
@@ -96,7 +96,7 @@
     .role-btn {
       flex: 1; padding: 1.1rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
-      color: var(--text); font-family: var(--sf);
+      color: var(--muted); font-family: var(--sf);
       font-size: 1.3rem; font-weight: 600; cursor: pointer; transition: all .18s;
     }
     .role-btn:hover { border-color: var(--muted); }
@@ -108,7 +108,7 @@
     .loc-btn {
       padding: 1rem .6rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
-      color: var(--text); font-family: var(--sf);
+      color: var(--muted); font-family: var(--sf);
       font-size: 1.3rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
     }
     .loc-btn:hover { border-color: var(--muted); }
@@ -141,7 +141,8 @@
     }
 
     /* ── OVERVIEW ──────────────────────────────────────── */
-    #page-overview { padding: 1.5rem 0 7rem; flex: 1; display: flex; flex-direction: column; }
+    #page-overview { padding: 1.5rem 0 7rem; }
+    #page-overview.active { flex: 1; }
 
     .ov-top { padding: 0 1.2rem; }
     .ov-header { display: flex; justify-content: center; margin-bottom: 1.1rem; }
@@ -391,6 +392,7 @@ async function maybeReset() {
 
 // ── Refresh ────────────────────────────────────────────
 async function triggerRefresh() {
+  if (prompt("Passwort:") !== "1234") return;
   if (!confirm('Alle Einträge löschen?')) return;
   try {
     const fresh = emptyData();
