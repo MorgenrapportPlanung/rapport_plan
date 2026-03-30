@@ -21,10 +21,8 @@
       --ua:           #60a5fa;
       --aa:           #34d399;
       --sf: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-      --sf-mono: 'SF Mono', ui-monospace, monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background: var(--bg); color: var(--text);
       font-family: var(--sf); font-size: 20px;
@@ -32,16 +30,14 @@
       padding-top: env(safe-area-inset-top);
     }
 
-    /* ── CLOCK ─────────────────────────────────────────── */
+    /* CLOCK */
     #clock-bar {
       font-family: var(--sf); font-size: 1.6rem; font-weight: 600;
-      color: var(--text); text-align: center;
-      padding: 1.1rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
+      color: var(--text); text-align: center; padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid var(--border); background: var(--surface);
     }
 
-    /* ── TABS ──────────────────────────────────────────── */
+    /* TABS */
     .tab-bar {
       display: flex; background: var(--surface);
       border-bottom: 2px solid var(--border);
@@ -49,32 +45,28 @@
     }
     .tab-btn {
       flex: 1; padding: 1.1rem; background: none; border: none;
-      color: var(--muted); font-family: var(--sf);
-      font-size: 1rem; letter-spacing: .02em;
+      color: var(--muted); font-family: var(--sf); font-size: 1rem;
       cursor: pointer; border-bottom: 2px solid transparent;
       margin-bottom: -2px; transition: all .2s;
     }
     .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
 
-    /* ── PAGES ─────────────────────────────────────────── */
+    /* PAGES */
     .page { display: none; }
     .page.active { display: flex; flex-direction: column; }
 
-    /* ── CHECK-IN ──────────────────────────────────────── */
+    /* CHECK-IN */
     #page-checkin { align-items: center; padding: 2rem 1rem 5rem; }
-
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 1.8rem;
       width: 100%; max-width: 560px; margin-bottom: 1.2rem;
     }
     #card-loc { border-color: var(--border-light); }
-
     .card-title {
       font-family: var(--sf); font-size: 1.3rem; font-weight: 500;
       color: var(--muted); margin-bottom: 1.1rem;
     }
-
     input[type="text"] {
       width: 100%; background: var(--bg); border: 1px solid var(--border);
       border-radius: 10px; color: var(--text); font-family: var(--sf);
@@ -104,37 +96,34 @@
     .loc-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
     .loc-btn.before-divider { margin-bottom: 1rem; }
     .loc-btn.after-divider  { margin-top: 1rem; }
-    .loc-divider { grid-column: 1 / -1; height: 1px; background: var(--border-light); }
+    .loc-divider { grid-column: 1/-1; height: 1px; background: var(--border-light); }
 
     #submit-btn {
-      width: 100%; max-width: 560px; padding: 1.2rem;
-      border-radius: 12px; border: none; background: #1e293b;
-      color: var(--muted); font-family: var(--sf);
+      width: 100%; max-width: 560px; padding: 1.2rem; border-radius: 12px;
+      border: none; background: #1e293b; color: var(--muted); font-family: var(--sf);
       font-size: 1.2rem; font-weight: 600; cursor: not-allowed; transition: all .2s;
     }
-    #submit-btn.ready     { background: var(--ua); color: #0f1117; cursor: pointer; }
-    #submit-btn.ready.aa  { background: var(--aa); color: #0f1117; }
-    #submit-btn.done      { background: #1e293b; color: var(--text); border: 2px solid var(--border-light); cursor: default; }
+    #submit-btn.ready    { background: var(--ua); color: #0f1117; cursor: pointer; }
+    #submit-btn.ready.aa { background: var(--aa); color: #0f1117; }
+    #submit-btn.done     { background: #1e293b; color: var(--text); border: 2px solid var(--border-light); cursor: default; }
     #submit-btn:active:not(.done):not(:disabled) { transform: scale(.98); }
 
     #status-msg {
       max-width: 560px; width: 100%; text-align: center;
-      font-size: 1rem; color: var(--muted); min-height: 1.4em; margin-top: .6rem;
+      font-size: 1rem; color: #f87171; min-height: 1.4em; margin-top: .6rem;
     }
 
-    /* ── OVERVIEW ──────────────────────────────────────── */
+    /* OVERVIEW */
     #page-overview { padding: 1.5rem 0 6rem; }
-
-    .ov-top { padding: 0 1.2rem; }
     .legend {
-      display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.2rem;
-      font-size: 1.1rem; color: var(--text); font-weight: 500;
+      display: flex; justify-content: center; gap: 1.5rem;
+      margin: 0 1.2rem 1.2rem; font-size: 1.1rem; color: var(--text); font-weight: 500;
     }
     .legend span { display: flex; align-items: center; gap: .45rem; }
     .dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
 
     .ov-scroll-wrap { overflow-x: auto; padding: 0 1.2rem 1rem; -webkit-overflow-scrolling: touch; }
-    .ov-cols { display: flex; flex-direction: row; gap: 0; width: max-content; min-width: 100%; }
+    .ov-cols { display: flex; gap: 0; width: max-content; min-width: 100%; }
 
     .ov-col {
       background: var(--surface); border: 1px solid var(--border);
@@ -142,16 +131,13 @@
       display: flex; flex-direction: column; flex: 1; min-width: 100px;
     }
     .ov-col + .ov-col { margin-left: .7rem; }
+    .ov-col-divider { width: 1px; background: rgba(232,234,240,.4); margin: 0 1.4rem; align-self: stretch; flex-shrink: 0; }
 
-    .ov-col-divider {
-      width: 1px; background: rgba(232,234,240,.4);
-      margin: 0 1.4rem; align-self: stretch; flex-shrink: 0;
-    }
     .ov-col-head {
       font-family: var(--sf); font-size: 1.3rem; font-weight: 600;
       color: var(--text); text-align: center;
       padding-bottom: .6rem; margin-bottom: .6rem;
-      border-bottom: 1px solid var(--border); line-height: 1.3; flex-shrink: 0;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
     .ov-names { flex: 1; }
     .ov-name {
@@ -171,44 +157,29 @@
       .ov-col-divider { display: none; }
     }
 
-    /* ── REFRESH BUTTON ────────────────────────────────── */
+    /* REFRESH FOOTER */
     #refresh-btn {
       position: fixed; bottom: 0; left: 0; right: 0;
       display: none; justify-content: center; align-items: center; gap: .5rem;
       background: var(--bg); border: none; border-top: 1px solid var(--border);
       cursor: pointer; color: var(--muted); font-family: var(--sf); font-size: 1rem;
       padding: 1rem 1.4rem calc(1rem + env(safe-area-inset-bottom));
-      transition: color .2s; z-index: 100; width: 100%;
+      z-index: 100; width: 100%; transition: color .2s;
     }
     #refresh-btn.visible { display: flex; }
     #refresh-btn:hover { color: var(--text); }
     #refresh-btn svg { width: 18px; height: 18px; }
 
-    /* ── CONNECTION INDICATOR ──────────────────────────── */
-    #conn-indicator {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: #374151;
-      transition: background .5s;
-      flex-shrink: 0;
-      position: absolute;
-      right: 1.4rem;
-      top: 50%;
-      transform: translateY(-50%);
+    /* CONNECTION DOT inside footer */
+    #conn-dot {
+      position: absolute; right: 1.4rem;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #374151; transition: background .5s;
     }
-    #refresh-btn { position: fixed !important; }
-    #conn-indicator.ok  { background: rgba(34, 197, 94, 0.5); }
-    #conn-indicator.err { background: rgba(239, 68, 68, 0.5); }
+    #conn-dot.ok  { background: rgba(34,197,94,.5); }
+    #conn-dot.err { background: rgba(239,68,68,.5); }
 
-    /* ── SPINNER ───────────────────────────────────────── */
-    .spinner {
-      display: inline-block; width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,.15); border-top-color: currentColor;
-      border-radius: 50%; animation: spin .6s linear infinite;
-      vertical-align: middle; margin-right: .4rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    /* ── PASSWORD MODAL ────────────────────────────────── */
+    /* PASSWORD MODAL */
     #pw-overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,.6); z-index: 500;
@@ -217,60 +188,33 @@
     #pw-overlay.visible { display: flex; }
     #pw-box {
       background: var(--surface); border: 1px solid var(--border-light);
-      border-radius: 16px; padding: 2rem; width: 90%; max-width: 320px;
+      border-radius: 16px; padding: 2rem; width: 90%; max-width: 300px;
       display: flex; flex-direction: column; gap: 1rem;
     }
     #pw-box h3 { font-size: 1.1rem; font-weight: 600; color: var(--text); }
-    #pw-input {
+    #pw-field {
       width: 100%; background: var(--bg); border: 1px solid var(--border);
       border-radius: 10px; color: var(--text); font-family: var(--sf);
-      font-size: 1.2rem; padding: .7rem 1rem; outline: none;
-      transition: border-color .2s;
+      font-size: 1.2rem; padding: .7rem 1rem; outline: none; transition: border-color .2s;
     }
-    #pw-input:focus { border-color: var(--ua); }
+    #pw-field:focus { border-color: var(--ua); }
+    #pw-error { font-size: .9rem; color: #f87171; min-height: 1.2em; }
     #pw-actions { display: flex; gap: .7rem; }
-    #pw-cancel {
-      flex: 1; padding: .8rem; border-radius: 10px;
-      border: 1px solid var(--border); background: none;
-      color: var(--muted); font-family: var(--sf); font-size: 1rem; cursor: pointer;
-    }
-    #pw-confirm {
-      flex: 1; padding: .8rem; border-radius: 10px;
-      border: none; background: var(--ua);
-      color: #0f1117; font-family: var(--sf); font-size: 1rem;
-      font-weight: 600; cursor: pointer;
-    }
-
-    /* ── PASSWORD MODAL ────────────────────────────────── */
-    #pw-modal {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.6); z-index: 1000;
-      align-items: center; justify-content: center;
-    }
-    #pw-modal.visible { display: flex; }
-    #pw-box {
-      background: var(--surface); border: 1px solid var(--border-light);
-      border-radius: 16px; padding: 2rem; width: 90%; max-width: 320px;
-      display: flex; flex-direction: column; gap: 1rem;
-    }
-    #pw-box p { font-size: 1.1rem; font-weight: 600; color: var(--text); text-align: center; }
-    #pw-input {
-      width: 100%; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text); font-family: var(--sf);
-      font-size: 1.3rem; padding: .75rem 1rem; outline: none;
-      text-align: center; letter-spacing: .2em;
-      transition: border-color .2s;
-    }
-    #pw-input:focus { border-color: var(--ua); }
-    #pw-error { color: #ef4444; font-size: .9rem; text-align: center; min-height: 1.2em; }
-    .pw-btns { display: flex; gap: .7rem; }
     .pw-btn {
-      flex: 1; padding: .85rem; border-radius: 10px; border: none;
-      font-family: var(--sf); font-size: 1rem; font-weight: 600; cursor: pointer;
+      flex: 1; padding: .8rem; border-radius: 10px; font-family: var(--sf);
+      font-size: 1rem; cursor: pointer;
     }
-    #pw-cancel { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
-    #pw-ok     { background: var(--ua); color: #0f1117; }
+    #pw-cancel { border: 1px solid var(--border); background: none; color: var(--muted); }
+    #pw-ok     { border: none; background: var(--ua); color: #0f1117; font-weight: 600; }
 
+    /* SPINNER */
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.15); border-top-color: currentColor;
+      border-radius: 50%; animation: spin .6s linear infinite;
+      vertical-align: middle; margin-right: .4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -305,53 +249,49 @@
 
 <!-- OVERVIEW -->
 <div id="page-overview" class="page">
-  <div class="ov-top">
-    <div class="legend">
-      <span><span class="dot" style="background:var(--ua)"></span>UA / UÄ</span>
-      <span><span class="dot" style="background:var(--aa)"></span>AA / AÄ</span>
-    </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--ua)"></span>UA / UÄ</span>
+    <span><span class="dot" style="background:var(--aa)"></span>AA / AÄ</span>
   </div>
   <div class="ov-scroll-wrap">
     <div class="ov-cols" id="ov-cols"></div>
   </div>
 </div>
 
-<!-- REFRESH (overview only) -->
-<button id="refresh-btn" onclick="triggerRefresh()">
+<!-- FOOTER: refresh + connection dot (overview only) -->
+<button id="refresh-btn" onclick="openPwModal()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
     <path d="M3 3v5h5"/>
   </svg>
   Zurücksetzen
-  <div id="conn-indicator"></div>
+  <div id="conn-dot"></div>
 </button>
 
-
+<!-- PASSWORD MODAL -->
+<div id="pw-overlay">
+  <div id="pw-box">
+    <h3>Passwort</h3>
+    <input type="password" id="pw-field" placeholder="" autocomplete="off">
+    <div id="pw-error"></div>
+    <div id="pw-actions">
+      <button class="pw-btn" id="pw-cancel" onclick="closePwModal()">Abbrechen</button>
+      <button class="pw-btn" id="pw-ok" onclick="confirmPwAndReset()">OK</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
-
-// Fetch with 10s timeout
-async function fetchT(url, opts) {
-  const ctrl = new AbortController();
-  const tid = setTimeout(() => ctrl.abort(), 10000);
-  try {
-    return await fetch(url, { ...opts, signal: ctrl.signal });
-  } finally {
-    clearTimeout(tid);
-  }
-}
 const RESET_HOUR   = 0;
 const RESET_MINUTE = 0;
-const LOCATIONS = [
-  'Saal 11', 'Saal 13', 'Saal 14', 'Saal 15',
-  'Saal 16', 'Saal 3/19/20', 'SS Gross', 'SS Klein',
-];
+const LOCATIONS    = ['Saal 11','Saal 13','Saal 14','Saal 15','Saal 16','Saal 3/19/20','SS Gross','SS Klein'];
 const DIVIDER_AFTER = 4;
 
+// Unique browser ID (no hyphens = valid Firebase key)
 let myId = localStorage.getItem('cid');
 if (!myId) {
-  myId = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now()).replace(/-/g, '');
+  myId = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now()).replace(/-/g,'');
   localStorage.setItem('cid', myId);
 }
 
@@ -360,36 +300,39 @@ let selectedLoc  = null;
 let currentData  = null;
 let hasCheckedIn = false;
 
+// ── Boot ───────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   buildLocGrid();
   const saved = localStorage.getItem('checkin_name');
   if (saved) document.getElementById('name-input').value = saved;
   document.getElementById('name-input').addEventListener('input', updateBtn);
+  document.getElementById('pw-field').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmPwAndReset();
+    if (e.key === 'Escape') closePwModal();
+  });
   startClock();
   startRealtimeListener();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 });
 
 // ── Clock ──────────────────────────────────────────────
 function startClock() {
   const el = document.getElementById('clock-bar');
   const tick = () => {
-    const now     = new Date();
-    const weekday = now.toLocaleDateString('de-CH', { weekday: 'long' });
-    const date    = now.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    el.textContent = `${weekday}, ${date}`;
+    const now = new Date();
+    el.textContent = now.toLocaleDateString('de-CH', { weekday:'long', day:'2-digit', month:'2-digit', year:'numeric' });
   };
-  tick(); setInterval(tick, 60_000);
+  tick(); setInterval(tick, 60000);
 }
 
-// ── Connection indicator ───────────────────────────────
+// ── Connection dot ─────────────────────────────────────
 function setConn(ok) {
-  const el = document.getElementById('conn-indicator');
+  const el = document.getElementById('conn-dot');
   el.classList.toggle('ok', ok);
   el.classList.toggle('err', !ok);
 }
 
-// ── Firebase ───────────────────────────────────────────
+// ── Firebase realtime ──────────────────────────────────
 function startRealtimeListener() {
   const es = new EventSource(`${FIREBASE_URL}/checkin.json`);
   es.addEventListener('put', e => {
@@ -402,7 +345,8 @@ function startRealtimeListener() {
     setConn(true);
     const patch = JSON.parse(e.data).data;
     if (currentData && patch) {
-      if (patch.entries) { if (!currentData.entries) currentData.entries = {}; Object.assign(currentData.entries, patch.entries); }
+      if (!currentData.entries) currentData.entries = {};
+      if (patch.entries) Object.assign(currentData.entries, patch.entries);
       renderOverview();
     }
   });
@@ -410,7 +354,7 @@ function startRealtimeListener() {
     setConn(false);
     es.close();
     loadData();
-    setInterval(loadData, 15_000);
+    setInterval(loadData, 15000);
   };
 }
 
@@ -418,58 +362,50 @@ async function loadData() {
   try {
     const res = await fetch(`${FIREBASE_URL}/checkin.json?t=${Date.now()}`);
     currentData = (await res.json()) || emptyData();
-    }
     await maybeReset();
     renderOverview();
     setConn(true);
   } catch(e) {
-    console.error('load:', e);
+    console.error('loadData:', e);
     setConn(false);
   }
 }
 
 async function writeAll(data) {
   const res = await fetch(`${FIREBASE_URL}/checkin.json`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error(await res.text());
 }
 
 function emptyData() { return { lastReset: todayStr(), entries: {} }; }
-function todayStr()  { return new Date().toISOString().slice(0, 10); }
+function todayStr()  { return new Date().toISOString().slice(0,10); }
 
 async function maybeReset() {
   if (!currentData) return;
   const now  = new Date();
-  const past = now.getHours() > RESET_HOUR
-    || (now.getHours() === RESET_HOUR && now.getMinutes() >= RESET_MINUTE);
+  const past = now.getHours() > RESET_HOUR || (now.getHours() === RESET_HOUR && now.getMinutes() >= RESET_MINUTE);
   if (currentData.lastReset !== todayStr() && past) {
     currentData = emptyData();
     await writeAll(currentData);
   }
 }
 
-// ── Refresh ────────────────────────────────────────────
-function triggerRefresh() {
-  const modal = document.getElementById('pw-modal');
-  const input = document.getElementById('pw-input');
+// ── Password modal ─────────────────────────────────────
+function openPwModal() {
+  document.getElementById('pw-field').value = '';
   document.getElementById('pw-error').textContent = '';
-  input.value = '';
-  modal.classList.add('visible');
-  setTimeout(() => input.focus(), 100);
+  document.getElementById('pw-overlay').classList.add('visible');
+  setTimeout(() => document.getElementById('pw-field').focus(), 100);
 }
-
 function closePwModal() {
-  document.getElementById('pw-modal').classList.remove('visible');
+  document.getElementById('pw-overlay').classList.remove('visible');
 }
-
-async function checkPw() {
-  const input = document.getElementById('pw-input');
-  if (input.value !== '1234') {
+async function confirmPwAndReset() {
+  if (document.getElementById('pw-field').value !== '1234') {
     document.getElementById('pw-error').textContent = 'Falsches Passwort';
-    input.value = '';
-    input.focus();
+    document.getElementById('pw-field').value = '';
+    document.getElementById('pw-field').focus();
     return;
   }
   closePwModal();
@@ -480,9 +416,11 @@ async function checkPw() {
     currentData  = fresh;
     hasCheckedIn = false;
     const btn = document.getElementById('submit-btn');
-    btn.classList.remove('done');
-    btn.disabled = true;
+    btn.classList.remove('done'); btn.disabled = true;
     document.getElementById('status-msg').textContent = '';
+    selectedRole = null; selectedLoc = null;
+    document.querySelectorAll('.role-btn').forEach(b => b.className = 'role-btn');
+    document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('sel-ua','sel-aa'));
     updateBtn();
     renderOverview();
   } catch(e) { console.error(e); alert('Fehler beim Zurücksetzen'); }
@@ -504,17 +442,15 @@ function buildLocGrid() {
   LOCATIONS.forEach((name, i) => {
     if (i === DIVIDER_AFTER + 1) {
       grid.querySelectorAll('.loc-btn').forEach(b => {
-        if (b.id === `lb-${DIVIDER_AFTER - 1}` || b.id === `lb-${DIVIDER_AFTER}`)
-          b.classList.add('before-divider');
+        if (b.id === `lb-${DIVIDER_AFTER-1}` || b.id === `lb-${DIVIDER_AFTER}`) b.classList.add('before-divider');
       });
       const div = document.createElement('div');
       div.className = 'loc-divider';
       grid.appendChild(div);
     }
     const btn = document.createElement('button');
-    btn.className = 'loc-btn'; btn.id = `lb-${i}`;
-    btn.textContent = name;
-    if (i === DIVIDER_AFTER + 1 || i === DIVIDER_AFTER + 2) btn.classList.add('after-divider');
+    btn.className = 'loc-btn'; btn.id = `lb-${i}`; btn.textContent = name;
+    if (i === DIVIDER_AFTER+1 || i === DIVIDER_AFTER+2) btn.classList.add('after-divider');
     btn.onclick = () => selectLoc(i);
     grid.appendChild(btn);
   });
@@ -523,22 +459,21 @@ function buildLocGrid() {
 function selectRole(role) {
   selectedRole = role;
   document.querySelectorAll('.role-btn').forEach(b => b.className = 'role-btn');
-  document.querySelector(`[data-role="${role}"]`).classList.add(role === 'UA' ? 'sel-ua' : 'sel-aa');
+  document.querySelector(`[data-role="${role}"]`).classList.add(role==='UA'?'sel-ua':'sel-aa');
   if (selectedLoc !== null) paintLoc(selectedLoc);
   updateBtn();
 }
 
 function selectLoc(idx) {
   selectedLoc = idx;
-  document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('sel-ua', 'sel-aa'));
-  paintLoc(idx);
-  updateBtn();
+  document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('sel-ua','sel-aa'));
+  paintLoc(idx); updateBtn();
 }
 
 function paintLoc(idx) {
-  const cls = selectedRole === 'UA' ? 'sel-ua' : selectedRole === 'AA' ? 'sel-aa' : '';
+  const cls = selectedRole==='UA'?'sel-ua':selectedRole==='AA'?'sel-aa':'';
   const btn = document.getElementById(`lb-${idx}`);
-  if (btn) { btn.classList.remove('sel-ua', 'sel-aa'); if (cls) btn.classList.add(cls); }
+  if (btn) { btn.classList.remove('sel-ua','sel-aa'); if (cls) btn.classList.add(cls); }
 }
 
 function updateBtn() {
@@ -548,10 +483,10 @@ function updateBtn() {
   const ok   = !!(name && selectedRole && selectedLoc !== null);
   btn.disabled = !ok;
   btn.classList.toggle('ready', ok);
-  if (ok) btn.classList.toggle('aa', selectedRole === 'AA');
+  if (ok) btn.classList.toggle('aa', selectedRole==='AA');
   else btn.classList.remove('aa');
   btn.textContent = ok
-    ? `Check-In: ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'} — ${LOCATIONS[selectedLoc]}`
+    ? `Check-In: ${selectedRole==='UA'?'UA/UÄ':'AA/AÄ'} — ${LOCATIONS[selectedLoc]}`
     : 'Check-In';
 }
 
@@ -567,43 +502,33 @@ async function submitCheckin() {
   localStorage.setItem('checkin_name', name);
 
   try {
-    // PATCH only this user's entry — no race condition with other users
     const entry = { name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
+
+    // Write only this user's entry — no race condition
     const res = await fetch(`${FIREBASE_URL}/checkin/entries/${myId}.json`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(entry),
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(entry),
     });
     if (!res.ok) throw new Error(await res.text());
-    // Also set lastReset
+
+    // Set lastReset
     await fetch(`${FIREBASE_URL}/checkin/lastReset.json`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(todayStr()),
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(todayStr()),
     });
-    // Update local state without overwriting others
-    if (!currentData) currentData = emptyData();
-    if (!currentData.entries) currentData.entries = {};
-    if (!currentData) currentData = emptyData();
-    if (!currentData.entries) currentData.entries = {};
-    currentData.entries[myId] = entry;
-    await loadData(); // reload from Firebase to confirm
-    renderOverview();
+
+    // Reload from Firebase to confirm
+    await loadData();
 
     hasCheckedIn = true;
     btn.disabled = true;
-    btn.classList.remove('ready', 'aa');
+    btn.classList.remove('ready','aa');
     btn.classList.add('done');
-    btn.textContent = `${name}  —  ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'}  —  ${LOCATIONS[selectedLoc]}  ✓`;
+    btn.textContent = `${name} — ${selectedRole==='UA'?'UA/UÄ':'AA/AÄ'} — ${LOCATIONS[selectedLoc]} ✓`;
     document.getElementById('status-msg').textContent = '';
   } catch(e) {
-    console.error(e);
+    console.error('submit:', e);
     document.getElementById('status-msg').textContent = 'Fehler – bitte nochmal versuchen';
   } finally {
-    if (!hasCheckedIn) {
-      btn.disabled = false;
-      updateBtn();
-    }
+    if (!hasCheckedIn) { btn.disabled = false; updateBtn(); }
   }
 }
 
@@ -611,7 +536,7 @@ async function submitCheckin() {
 function renderOverview() {
   const wrap = document.getElementById('ov-cols');
   wrap.innerHTML = '';
-  const buckets = LOCATIONS.map(() => []);
+  const buckets = LOCATIONS.map(()=>[]);
   const entries = currentData?.entries || {};
   Object.entries(entries).forEach(([uid, e]) => {
     if (e && e.loc >= 0 && e.loc < LOCATIONS.length)
@@ -631,46 +556,11 @@ function renderOverview() {
       <div class="ov-names">
         ${members.length === 0
           ? '<div class="ov-empty">—</div>'
-          : members.map(m =>
-              `<div class="ov-name ${m.role.toLowerCase()}${m.isMe ? ' me' : ''}" title="${m.name}">${m.name}</div>`
-            ).join('')}
-      </div>
-    `;
+          : members.map(m=>`<div class="ov-name ${m.role.toLowerCase()}${m.isMe?' me':''}" title="${m.name}">${m.name}</div>`).join('')}
+      </div>`;
     wrap.appendChild(col);
   });
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('pw-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') checkPw();
-    if (e.key === 'Escape') closePwModal();
-  });
-});
 </script>
-<!-- PASSWORD MODAL -->
-<div id="pw-modal">
-  <div id="pw-box">
-    <p>Passwort</p>
-    <input type="password" id="pw-input" placeholder="••••" maxlength="20">
-    <div id="pw-error"></div>
-    <div class="pw-btns">
-      <button class="pw-btn" id="pw-cancel" onclick="closePwModal()">Abbrechen</button>
-      <button class="pw-btn" id="pw-ok" onclick="checkPw()">OK</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- PASSWORD MODAL -->
-<div id="pw-overlay">
-  <div id="pw-box">
-    <h3>Passwort</h3>
-    <input type="password" id="pw-input" placeholder="" autocomplete="off">
-    <div id="pw-actions">
-      <button id="pw-cancel" onclick="closePwModal()">Abbrechen</button>
-      <button id="pw-confirm" onclick="confirmPw()">OK</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
