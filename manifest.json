@@ -1,6 +1,6 @@
 {
-  "name": "Morgen Check-in",
-  "short_name": "Check-in",
+  "name": "Rapport Check-In",
+  "short_name": "Rapport",
   "description": "Täglicher Morgenrapport Check-in",
   "start_url": "./checkin.html",
   "display": "standalone",
