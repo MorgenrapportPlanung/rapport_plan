@@ -515,8 +515,13 @@ async function submitCheckin() {
       method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(todayStr()),
     });
 
-    // Reload from Firebase to confirm
-    await loadData();
+    // Update local state immediately for instant display
+    if (!currentData) currentData = emptyData();
+    if (!currentData.entries) currentData.entries = {};
+    currentData.entries[myId] = entry;
+    renderOverview();
+    // Also reload from Firebase after short delay to confirm sync
+    setTimeout(loadData, 1000);
 
     hasCheckedIn = true;
     btn.disabled = true;
