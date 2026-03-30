@@ -100,7 +100,7 @@
       font-size: 1.3rem; font-weight: 600; cursor: pointer; transition: all .18s;
     }
     .role-btn:hover { border-color: var(--muted); }
-    .role-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
+    .role-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #0d1f38; }
     .role-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
 
     /* Location grid */
@@ -112,7 +112,7 @@
       font-size: 1.3rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
     }
     .loc-btn:hover { border-color: var(--muted); }
-    .loc-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
+    .loc-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #0d1f38; }
     .loc-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
     .loc-btn.before-divider { margin-bottom: 1rem; }
     .loc-btn.after-divider  { margin-top: 1rem; }
@@ -130,8 +130,8 @@
     #submit-btn.ready { background: var(--ua); color: #0f1117; cursor: pointer; }
     #submit-btn.ready.aa { background: var(--aa); color: #0f1117; }
     #submit-btn.done {
-      background: #0f2a1e; color: var(--aa);
-      border: 2px solid var(--aa); cursor: default;
+      background: #1e293b; color: var(--text);
+      border: 2px solid var(--border-light); cursor: default;
     }
     #submit-btn:active:not(.done):not(:disabled) { transform: scale(.98); }
 
@@ -200,7 +200,7 @@
       border-radius: 6px; margin-bottom: .25rem; text-align: center;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .ov-name.ua { color: var(--ua); background: #28200a; outline: 1px solid var(--ua); }
+    .ov-name.ua { color: var(--ua); background: #0d1f38; outline: 1px solid var(--ua); }
     .ov-name.aa { color: var(--aa); background: #0f2a1e; outline: 1px solid var(--aa); }
     .ov-name.me { outline-width: 2px; }
     .ov-empty { color: var(--muted); font-size: .95rem; text-align: center; margin-top: .5rem; }
@@ -469,7 +469,10 @@ function selectLoc(idx) {
 function paintLoc(idx) {
   const cls = selectedRole === 'UA' ? 'sel-ua' : selectedRole === 'AA' ? 'sel-aa' : '';
   const btn = document.getElementById(`lb-${idx}`);
-  if (btn && cls) btn.classList.add(cls);
+  if (btn) {
+    btn.classList.remove('sel-ua', 'sel-aa');
+    if (cls) btn.classList.add(cls);
+  }
 }
 
 function updateBtn() {
