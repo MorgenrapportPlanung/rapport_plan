@@ -330,6 +330,17 @@
 
 <script>
 const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
+
+// Fetch with 10s timeout
+async function fetchT(url, opts) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(tid);
+  }
+}
 const RESET_HOUR   = 0;
 const RESET_MINUTE = 0;
 const LOCATIONS = [
@@ -555,24 +566,40 @@ async function submitCheckin() {
   localStorage.setItem('checkin_name', name);
 
   try {
-    const res = await fetch(`${FIREBASE_URL}/checkin.json?t=${Date.now()}`);
-    const latest  = (await res.json()) || {};
-    const entries = latest.entries || {};
-    entries[myId] = { name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
-    await writeAll({ lastReset: todayStr(), entries });
-    currentData = { lastReset: todayStr(), entries };
+    // PATCH only this user's entry — no race condition with other users
+    const entry = { name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
+    const res = await fetchT(`${FIREBASE_URL}/checkin/entries/${myId}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    // Also set lastReset
+    await fetchT(`${FIREBASE_URL}/checkin/lastReset.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(todayStr()),
+    });
+    // Update local state without overwriting others
+    if (!currentData) currentData = emptyData();
+    if (!currentData.entries) currentData.entries = {};
+    currentData.entries[myId] = entry;
     renderOverview();
 
     hasCheckedIn = true;
     btn.disabled = true;
     btn.classList.remove('ready', 'aa');
     btn.classList.add('done');
-    btn.textContent = `${name}  —  ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'}  —  ${LOCATIONS[selectedLoc]}`;
+    btn.textContent = `${name}  —  ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'}  —  ${LOCATIONS[selectedLoc]}  ✓`;
     document.getElementById('status-msg').textContent = '';
   } catch(e) {
     console.error(e);
     document.getElementById('status-msg').textContent = 'Fehler – bitte nochmal versuchen';
-    btn.disabled = false; updateBtn();
+  } finally {
+    if (!hasCheckedIn) {
+      btn.disabled = false;
+      updateBtn();
+    }
   }
 }
 
@@ -601,7 +628,7 @@ function renderOverview() {
         ${members.length === 0
           ? '<div class="ov-empty">—</div>'
           : members.map(m =>
-              `<div class="ov-name ${m.role.toLowerCase()}${m.isMe ? ' me' : ''}" title="${m.name}">${m.name} ✓</div>`
+              `<div class="ov-name ${m.role.toLowerCase()}${m.isMe ? ' me' : ''}" title="${m.name}">${m.name}</div>`
             ).join('')}
       </div>
     `;
