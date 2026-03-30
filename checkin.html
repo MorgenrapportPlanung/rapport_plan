@@ -248,6 +248,22 @@
       vertical-align: middle; margin-right: .4rem;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── CONNECTION INDICATOR ──────────────────────────── */
+    #conn-indicator {
+      position: fixed;
+      bottom: calc(1.2rem + env(safe-area-inset-bottom));
+      right: 1.2rem;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #374151;
+      z-index: 50;
+      transition: background .5s;
+      box-shadow: 0 0 0 3px rgba(0,0,0,.4);
+    }
+    #conn-indicator.ok  { background: #22c55e; }
+    #conn-indicator.err { background: #ef4444; }
+
   </style>
 </head>
 <body>
@@ -283,8 +299,7 @@
 <!-- OVERVIEW -->
 <div id="page-overview" class="page">
   <div class="ov-top">
-    <div class="ov-header"><span id="last-updated">—</span></div>
-    <div class="legend">
+    <div class="legend" style="justify-content:center;">
       <span><span class="dot" style="background:var(--ua)"></span>UA / UÄ</span>
       <span><span class="dot" style="background:var(--aa)"></span>AA / AÄ</span>
     </div>
@@ -355,18 +370,20 @@ function startClock() {
 function startRealtimeListener() {
   const es = new EventSource(`${FIREBASE_URL}/checkin.json`);
   es.addEventListener('put', e => {
+    setConn(true);
     const payload = JSON.parse(e.data);
     currentData = payload.data || emptyData();
     maybeReset().then(() => renderOverview());
   });
   es.addEventListener('patch', e => {
+    setConn(true);
     const patch = JSON.parse(e.data).data;
     if (currentData && patch) {
       if (patch.entries) Object.assign(currentData.entries, patch.entries);
       renderOverview();
     }
   });
-  es.onerror = () => { es.close(); loadData(); setInterval(loadData, 15_000); };
+  es.onerror = () => { setConn(false); es.close(); loadData(); setInterval(loadData, 15_000); };
 }
 
 async function loadData() {
@@ -375,7 +392,8 @@ async function loadData() {
     currentData = (await res.json()) || emptyData();
     await maybeReset();
     renderOverview();
-  } catch(e) { console.error('load:', e); }
+    setConn(true);
+  } catch(e) { console.error('load:', e); setConn(false); }
 }
 
 async function writeAll(data) {
@@ -556,9 +574,9 @@ function renderOverview() {
     wrap.appendChild(col);
   });
 
-  const time = new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('last-updated').textContent = `Stand: ${time}`;
+
 }
 </script>
+<div id="conn-indicator" title="Datenbankverbindung"></div>
 </body>
 </html>
