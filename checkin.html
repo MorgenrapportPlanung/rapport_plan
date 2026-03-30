@@ -390,34 +390,37 @@ function updateBtn() {
 }
 
 // ── Submit ─────────────────────────────────────────────
+
 async function submitCheckin() {
   if (hasCheckedIn) return;
-  const name = document.getElementById('name-input').value.trim();
+  const name = document.getElementById("name-input").value.trim();
   if (!name || selectedRole === null || selectedLoc === null) return;
-
-  const btn = document.getElementById('submit-btn');
+  const btn = document.getElementById("submit-btn");
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Speichern…';
-  localStorage.setItem('checkin_name', name);
-
+  btn.innerHTML = "<span class=\"spinner\"></span>Speichern…";
+  localStorage.setItem("checkin_name", name);
   try {
-    await saveEntry({ name, role: selectedRole, loc: selectedLoc, ts: Date.now() });
-    await fetch(`${FIREBASE_URL}/checkin/lastReset.json`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(todayStr()),
+    const res = await fetch(FIREBASE_URL + "/checkin.json?t=" + Date.now());
+    const latest = (await res.json()) || {};
+    const entries = latest.entries || {};
+    entries[myId] = { name: name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
+    const putRes = await fetch(FIREBASE_URL + "/checkin.json", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lastReset: todayStr(), entries: entries }),
     });
-    await loadData();
-
-    // Lock the button permanently
+    if (!putRes.ok) throw new Error(await putRes.text());
+    currentData = { lastReset: todayStr(), entries: entries };
+    renderOverview();
     hasCheckedIn = true;
     btn.disabled = true;
-    btn.classList.remove('ready', 'aa');
-    btn.classList.add('done');
-    btn.textContent = `✓ Eingetragen in „${LOCATIONS[selectedLoc]}"`;
-    setStatus(`${name} · ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'} · ${LOCATIONS[selectedLoc]}`, 'ok');
+    btn.classList.remove("ready", "aa");
+    btn.classList.add("done");
+    btn.textContent = "u2713 Eingetragen in u201e" + LOCATIONS[selectedLoc] + "u201c";
+    setStatus(name + " � " + (selectedRole === "UA" ? "UA/U�" : "AA/A�") + " � " + LOCATIONS[selectedLoc], "ok");
   } catch(e) {
     console.error(e);
-    setStatus('Fehler – bitte nochmal versuchen', 'err');
+    setStatus("Fehler – bitte nochmal versuchen", "err");
     btn.disabled = false; updateBtn();
   }
 }
