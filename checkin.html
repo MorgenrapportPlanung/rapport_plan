@@ -68,7 +68,7 @@
     .page.active { display: flex; flex-direction: column; }
 
     /* ── CHECK-IN ──────────────────────────────────────── */
-    #page-checkin { align-items: center; padding: 2rem 1rem 7rem; }
+    #page-checkin { align-items: center; padding: 2rem 1rem 3rem; }
 
     .card {
       background: var(--surface); border: 1px solid var(--border);
@@ -260,7 +260,9 @@
       z-index: 50;
       transition: background .5s;
       box-shadow: 0 0 0 3px rgba(0,0,0,.4);
+      display: none;
     }
+    #conn-indicator.visible { display: block; }
     #conn-indicator.ok  { background: #22c55e; }
     #conn-indicator.err { background: #ef4444; }
 
@@ -361,7 +363,7 @@ function startClock() {
     const weekday = now.toLocaleDateString('de-CH', { weekday: 'long' });
     const date    = now.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const time    = now.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
-    el.textContent = `${weekday}, ${date}  ·  ${time}`;
+    el.textContent = `${weekday}, ${date}`;
   };
   tick(); setInterval(tick, 1000);
 }
@@ -443,6 +445,7 @@ function showTab(tab) {
   document.getElementById('page-checkin').classList.toggle('active', tab === 'checkin');
   document.getElementById('page-overview').classList.toggle('active', tab === 'overview');
   document.getElementById('refresh-btn').classList.toggle('visible', tab === 'overview');
+  document.getElementById('conn-indicator').classList.toggle('visible', tab === 'overview');
   if (tab === 'overview') loadData();
 }
 
