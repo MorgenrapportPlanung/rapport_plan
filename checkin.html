@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Morgen Check-in</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg:      #0f1117;
@@ -15,148 +13,178 @@
       --muted:   #6b7280;
       --ua:      #fbbf24;
       --aa:      #34d399;
+      --sf:      -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+      --sf-mono: 'SF Mono', ui-monospace, 'Cascadia Code', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       background: var(--bg); color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--sf);
+      font-size: 17px;
       min-height: 100dvh; display: flex; flex-direction: column;
     }
+
+    /* ── CLOCK BAR ─────────────────────────────────────── */
     #clock-bar {
-      font-family: 'DM Mono', monospace; font-size: .72rem;
-      color: var(--muted); text-align: right; padding: .5rem 1.2rem;
-      border-bottom: 1px solid var(--border); background: var(--surface);
+      font-family: var(--sf);
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--text);
+      text-align: center;
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      letter-spacing: -0.01em;
     }
 
-    /* TABS */
+    /* ── TABS ──────────────────────────────────────────── */
     .tab-bar {
       display: flex; background: var(--surface);
       border-bottom: 2px solid var(--border);
       position: sticky; top: 0; z-index: 10;
     }
     .tab-btn {
-      flex: 1; padding: .9rem 1rem; background: none; border: none;
-      color: var(--muted); font-family: 'DM Mono', monospace;
-      font-size: .73rem; letter-spacing: .12em; text-transform: uppercase;
+      flex: 1; padding: 1rem 1rem; background: none; border: none;
+      color: var(--muted); font-family: var(--sf-mono);
+      font-size: .85rem; letter-spacing: .1em; text-transform: uppercase;
       cursor: pointer; border-bottom: 2px solid transparent;
       margin-bottom: -2px; transition: all .2s;
     }
     .tab-btn.active { color: var(--ua); border-bottom-color: var(--ua); }
 
-    /* PAGES */
+    /* ── PAGES ─────────────────────────────────────────── */
     .page { display: none; flex: 1; }
     .page.active { display: flex; flex-direction: column; }
 
-    /* CHECK-IN */
+    /* ── CHECK-IN PAGE ─────────────────────────────────── */
     #page-checkin { align-items: center; padding: 2rem 1rem 4rem; }
+
     .card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 14px; padding: 1.6rem;
-      width: 100%; max-width: 500px; margin-bottom: 1.1rem;
+      border-radius: 16px; padding: 1.8rem;
+      width: 100%; max-width: 520px; margin-bottom: 1.2rem;
     }
     .card-title {
-      font-family: 'DM Mono', monospace; font-size: .67rem;
-      letter-spacing: .14em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 1rem;
+      font-family: var(--sf-mono);
+      font-size: .78rem; letter-spacing: .13em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1.1rem;
     }
+
     input[type="text"] {
       width: 100%; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif;
-      font-size: 1.05rem; padding: .65rem 1rem; outline: none; transition: border-color .2s;
+      border-radius: 10px; color: var(--text); font-family: var(--sf);
+      font-size: 1.15rem; padding: .75rem 1.1rem; outline: none; transition: border-color .2s;
     }
     input[type="text"]:focus { border-color: var(--ua); }
     input[type="text"]::placeholder { color: var(--muted); }
 
-    .role-grid { display: flex; gap: .7rem; }
+    .role-grid { display: flex; gap: .75rem; }
     .role-btn {
-      flex: 1; padding: .85rem 1rem; border-radius: 10px;
+      flex: 1; padding: 1rem 1rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
-      color: var(--muted); font-family: 'DM Mono', monospace;
-      font-size: 1rem; font-weight: 500; cursor: pointer; transition: all .18s;
+      color: var(--muted); font-family: var(--sf);
+      font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all .18s;
     }
     .role-btn:hover { border-color: var(--muted); color: var(--text); }
     .role-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
     .role-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
 
-    .loc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .55rem; }
+    .loc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; }
     .loc-btn {
-      padding: .8rem .5rem; border-radius: 10px;
+      padding: .9rem .6rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
-      color: var(--muted); font-family: 'DM Sans', sans-serif;
-      font-size: .9rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
+      color: var(--muted); font-family: var(--sf);
+      font-size: 1rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
     }
     .loc-btn:hover { border-color: var(--muted); color: var(--text); }
     .loc-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
     .loc-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
 
     #submit-btn {
-      width: 100%; max-width: 500px; padding: 1rem; border-radius: 10px;
-      border: none; background: #1e293b; color: var(--muted);
-      font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600;
-      cursor: not-allowed; transition: all .2s;
+      width: 100%; max-width: 520px; padding: 1.1rem;
+      border-radius: 12px; border: none; background: #1e293b;
+      color: var(--muted); font-family: var(--sf);
+      font-size: 1.05rem; font-weight: 600; cursor: not-allowed; transition: all .2s;
     }
     #submit-btn.ready { background: var(--ua); color: #0f1117; cursor: pointer; }
     #submit-btn.ready.aa { background: var(--aa); }
-    #submit-btn:active { transform: scale(.98); }
+    #submit-btn.done {
+      background: #1e293b; color: var(--muted);
+      cursor: not-allowed; opacity: .6;
+    }
+    #submit-btn:active:not(.done) { transform: scale(.98); }
 
     #status-msg {
-      max-width: 500px; width: 100%; text-align: center;
-      font-size: .85rem; color: var(--muted); min-height: 1.6em; margin-top: .7rem;
+      max-width: 520px; width: 100%; text-align: center;
+      font-size: .95rem; color: var(--muted); min-height: 1.6em; margin-top: .8rem;
     }
     #status-msg.ok  { color: var(--aa); }
     #status-msg.err { color: #f87171; }
 
-    /* OVERVIEW */
-    #page-overview { padding: 1.4rem 1.2rem 4rem; flex: 1; }
-    .ov-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: .9rem; }
-    .ov-meta-title {
-      font-family: 'DM Mono', monospace; font-size: .68rem;
-      letter-spacing: .13em; text-transform: uppercase; color: var(--muted);
+    /* ── OVERVIEW PAGE ─────────────────────────────────── */
+    #page-overview { padding: 1.5rem 1.2rem 4rem; flex: 1; }
+
+    .ov-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1rem;
     }
-    #last-updated { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--muted); }
-    .legend { display: flex; gap: 1.2rem; margin-bottom: 1.1rem; font-size: .78rem; color: var(--muted); }
-    .legend span { display: flex; align-items: center; gap: .35rem; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    #last-updated {
+      font-family: var(--sf);
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .legend {
+      display: flex; gap: 1.4rem; margin-bottom: 1.2rem;
+      font-size: .95rem; color: var(--muted);
+    }
+    .legend span { display: flex; align-items: center; gap: .4rem; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
     .ov-cols {
-      display: grid; grid-template-columns: repeat(8, 1fr); gap: .6rem; width: 100%;
+      display: grid; grid-template-columns: repeat(8, 1fr); gap: .7rem; width: 100%;
     }
     @media (max-width: 900px) { .ov-cols { grid-template-columns: repeat(4, 1fr); } }
     @media (max-width: 500px) { .ov-cols { grid-template-columns: repeat(2, 1fr); } }
 
     .ov-col {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; min-height: 160px; padding: .75rem .55rem;
+      border-radius: 12px; min-height: 160px; padding: .85rem .6rem;
       display: flex; flex-direction: column;
     }
     .ov-col-head {
-      font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .06em;
+      font-family: var(--sf-mono); font-size: .72rem; letter-spacing: .05em;
       text-transform: uppercase; color: var(--muted); text-align: center;
-      padding-bottom: .55rem; margin-bottom: .55rem;
+      padding-bottom: .6rem; margin-bottom: .6rem;
       border-bottom: 1px solid var(--border); line-height: 1.4; flex-shrink: 0;
     }
     .ov-names { flex: 1; }
     .ov-name {
-      font-size: .78rem; font-weight: 500; padding: .22rem .4rem;
-      border-radius: 5px; margin-bottom: .2rem; text-align: center;
+      font-size: .9rem; font-weight: 500; padding: .25rem .45rem;
+      border-radius: 6px; margin-bottom: .25rem; text-align: center;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .ov-name.ua { color: var(--ua); background: #28200a; }
     .ov-name.aa { color: var(--aa); background: #0f2a1e; }
     .ov-name.me { outline: 1px solid currentColor; }
-    .ov-empty   { color: var(--muted); font-size: .72rem; text-align: center; margin-top: .4rem; }
+    .ov-empty   { color: var(--muted); font-size: .85rem; text-align: center; margin-top: .5rem; }
     .ov-count {
-      display: flex; justify-content: center; gap: .4rem; margin-top: .5rem;
-      font-family: 'DM Mono', monospace; font-size: .65rem; flex-shrink: 0;
+      display: flex; justify-content: center; gap: .4rem; margin-top: .6rem;
+      font-family: var(--sf-mono); font-size: .75rem; flex-shrink: 0;
     }
     .cnt-ua { color: var(--ua); }
     .cnt-aa { color: var(--aa); }
 
     .spinner {
-      display: inline-block; width: 13px; height: 13px;
+      display: inline-block; width: 14px; height: 14px;
       border: 2px solid rgba(255,255,255,.12); border-top-color: currentColor;
       border-radius: 50%; animation: spin .6s linear infinite;
-      vertical-align: middle; margin-right: .35rem;
+      vertical-align: middle; margin-right: .4rem;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -170,6 +198,7 @@
   <button class="tab-btn" id="tab-overview" onclick="showTab('overview')">Übersicht</button>
 </div>
 
+<!-- CHECK-IN -->
 <div id="page-checkin" class="page active">
   <div class="card">
     <div class="card-title">Schritt 1 — Name</div>
@@ -190,9 +219,9 @@
   <div id="status-msg"></div>
 </div>
 
+<!-- OVERVIEW -->
 <div id="page-overview" class="page">
-  <div class="ov-meta">
-    <span class="ov-meta-title">Belegung heute</span>
+  <div class="ov-header">
     <span id="last-updated">—</span>
   </div>
   <div class="legend">
@@ -204,20 +233,15 @@
 
 <script>
 // ══════════════════════════════════════════════════════
-//  KONFIGURATION — nur diese Zeile anpassen:
-// ══════════════════════════════════════════════════════
 const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
-// Beispiel: 'https://morgenrapport-abc12-default-rtdb.europe-west1.firebasedatabase.app'
-// ══════════════════════════════════════════════════════
-
 const RESET_HOUR   = 10;
 const RESET_MINUTE = 0;
 const LOCATIONS = [
   'Saal 11', 'Saal 13', 'Saal 14', 'Saal 15',
   'Saal 16', 'Saal 3/19/20', 'SS Gross', 'SS Klein',
 ];
+// ══════════════════════════════════════════════════════
 
-// Stable browser ID
 let myId = localStorage.getItem('cid');
 if (!myId) {
   myId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now();
@@ -227,15 +251,14 @@ if (!myId) {
 let selectedRole = null;
 let selectedLoc  = null;
 let currentData  = null;
+let hasCheckedIn = false;
 
-// ── Boot ───────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   buildLocGrid();
   const saved = localStorage.getItem('checkin_name');
   if (saved) document.getElementById('name-input').value = saved;
   document.getElementById('name-input').addEventListener('input', updateBtn);
   startClock();
-  // Firebase realtime listener — updates instantly when anyone checks in
   startRealtimeListener();
 });
 
@@ -243,18 +266,18 @@ window.addEventListener('DOMContentLoaded', () => {
 function startClock() {
   const el = document.getElementById('clock-bar');
   const tick = () => {
-    el.textContent = new Date().toLocaleString('de-CH', {
-      weekday: 'long', day: '2-digit', month: '2-digit',
-      year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
-    });
+    const now = new Date();
+    const weekday = now.toLocaleDateString('de-CH', { weekday: 'long' });
+    const date    = now.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const time    = now.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+    el.textContent = `${weekday}, ${date}  ·  ${time}`;
   };
   tick(); setInterval(tick, 1000);
 }
 
-// ── Firebase realtime listener (SSE) ──────────────────
+// ── Firebase realtime listener ─────────────────────────
 function startRealtimeListener() {
-  const url = `${FIREBASE_URL}/checkin.json`;
-  const es = new EventSource(url);
+  const es = new EventSource(`${FIREBASE_URL}/checkin.json`);
   es.addEventListener('put', e => {
     const payload = JSON.parse(e.data);
     currentData = payload.data || emptyData();
@@ -263,19 +286,17 @@ function startRealtimeListener() {
   es.addEventListener('patch', e => {
     const patch = JSON.parse(e.data).data;
     if (currentData && patch) {
-      Object.assign(currentData.entries || {}, patch.entries || {});
+      if (patch.entries) Object.assign(currentData.entries, patch.entries);
       renderOverview();
     }
   });
   es.onerror = () => {
-    // Fallback: poll every 15s if SSE fails
     es.close();
     loadData();
     setInterval(loadData, 15_000);
   };
 }
 
-// ── Fallback: plain fetch ──────────────────────────────
 async function loadData() {
   try {
     const res = await fetch(`${FIREBASE_URL}/checkin.json?t=${Date.now()}`);
@@ -285,27 +306,22 @@ async function loadData() {
   } catch(e) { console.error('load:', e); }
 }
 
-// ── Write to Firebase ──────────────────────────────────
 async function saveData() {
   const res = await fetch(`${FIREBASE_URL}/checkin.json`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(currentData),
   });
   if (!res.ok) throw new Error(await res.text());
 }
 
 async function saveEntry(entry) {
-  // PATCH only the single entry — faster and avoids overwrite conflicts
   const res = await fetch(`${FIREBASE_URL}/checkin/entries/${myId}.json`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(entry),
   });
   if (!res.ok) throw new Error(await res.text());
 }
 
-// ── Data helpers ───────────────────────────────────────
 function emptyData() { return { lastReset: todayStr(), entries: {} }; }
 function todayStr()  { return new Date().toISOString().slice(0, 10); }
 
@@ -315,19 +331,20 @@ async function maybeReset() {
   const past = now.getHours() > RESET_HOUR
     || (now.getHours() === RESET_HOUR && now.getMinutes() >= RESET_MINUTE);
   if (currentData.lastReset !== todayStr() && past) {
-    currentData = emptyData();
-    await saveData();
+    currentData = emptyData(); await saveData();
   }
 }
 
-// ── UI ─────────────────────────────────────────────────
+// ── Tabs ───────────────────────────────────────────────
 function showTab(tab) {
   document.getElementById('tab-checkin').classList.toggle('active', tab === 'checkin');
   document.getElementById('tab-overview').classList.toggle('active', tab === 'overview');
   document.getElementById('page-checkin').classList.toggle('active', tab === 'checkin');
   document.getElementById('page-overview').classList.toggle('active', tab === 'overview');
+  if (tab === 'overview') loadData();
 }
 
+// ── Build UI ───────────────────────────────────────────
 function buildLocGrid() {
   const grid = document.getElementById('loc-grid');
   LOCATIONS.forEach((name, i) => {
@@ -359,6 +376,7 @@ function paintLoc(idx) {
 }
 
 function updateBtn() {
+  if (hasCheckedIn) return; // locked after submit
   const name = document.getElementById('name-input').value.trim();
   const btn  = document.getElementById('submit-btn');
   const ok   = !!(name && selectedRole && selectedLoc !== null);
@@ -371,30 +389,40 @@ function updateBtn() {
     : 'Eintragen';
 }
 
+// ── Submit ─────────────────────────────────────────────
 async function submitCheckin() {
+  if (hasCheckedIn) return;
   const name = document.getElementById('name-input').value.trim();
   if (!name || selectedRole === null || selectedLoc === null) return;
+
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Speichern…';
   localStorage.setItem('checkin_name', name);
+
   try {
     await saveEntry({ name, role: selectedRole, loc: selectedLoc, ts: Date.now() });
-    // Also update lastReset if needed
     await fetch(`${FIREBASE_URL}/checkin/lastReset.json`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(todayStr()),
     });
-    setStatus(`✓ ${name} in „${LOCATIONS[selectedLoc]}" eingetragen`, 'ok');
+    await loadData();
+
+    // Lock the button permanently
+    hasCheckedIn = true;
+    btn.disabled = true;
+    btn.classList.remove('ready', 'aa');
+    btn.classList.add('done');
+    btn.textContent = `✓ Eingetragen in „${LOCATIONS[selectedLoc]}"`;
+    setStatus(`${name} · ${selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ'} · ${LOCATIONS[selectedLoc]}`, 'ok');
   } catch(e) {
     console.error(e);
     setStatus('Fehler – bitte nochmal versuchen', 'err');
-  } finally {
     btn.disabled = false; updateBtn();
   }
 }
 
+// ── Render overview ────────────────────────────────────
 function renderOverview() {
   const wrap = document.getElementById('ov-cols');
   wrap.innerHTML = '';
@@ -427,14 +455,14 @@ function renderOverview() {
     `;
     wrap.appendChild(col);
   });
-  document.getElementById('last-updated').textContent =
-    'Stand ' + new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+
+  const time = new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('last-updated').textContent = `Stand: ${time}`;
 }
 
 function setStatus(msg, type = '') {
   const el = document.getElementById('status-msg');
   el.textContent = msg; el.className = type;
-  if (type === 'ok') setTimeout(() => { el.textContent = ''; el.className = ''; }, 4000);
 }
 </script>
 </body>
