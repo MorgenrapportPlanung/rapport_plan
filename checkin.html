@@ -338,7 +338,22 @@ function startRealtimeListener() {
   es.addEventListener('put', e => {
     setConn(true);
     const payload = JSON.parse(e.data);
-    currentData = payload.data || emptyData();
+    const path = payload.path;
+    const data = payload.data;
+    if (path === '/') {
+      // Full replacement
+      currentData = data || emptyData();
+    } else {
+      // Partial update - merge into currentData
+      if (!currentData) currentData = emptyData();
+      const parts = path.split('/').filter(Boolean);
+      let obj = currentData;
+      for (let j = 0; j < parts.length - 1; j++) {
+        if (!obj[parts[j]]) obj[parts[j]] = {};
+        obj = obj[parts[j]];
+      }
+      obj[parts[parts.length - 1]] = data;
+    }
     maybeReset().then(() => renderOverview());
   });
   es.addEventListener('patch', e => {
