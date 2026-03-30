@@ -7,9 +7,9 @@
   <meta name="theme-color" content="#181c27">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Rapport Check-In">
+  <meta name="apple-mobile-web-app-title" content="Rapport Check-in">
   <link rel="apple-touch-icon" href="icon.svg">
-  <title>Rapport Check-In</title>
+  <title>Rapport Check-in</title>
   <style>
     :root {
       --bg:           #0f1117;
@@ -105,7 +105,7 @@
     }
     #submit-btn.ready    { background: var(--ua); color: #0f1117; cursor: pointer; }
     #submit-btn.ready.aa { background: var(--aa); color: #0f1117; }
-    #submit-btn.done     { background: #1e293b; color: var(--text); border: 2px solid var(--border-light); cursor: default; }
+    #submit-btn.done     { background: #2a3347; color: var(--text); border: 2px solid var(--border-light); cursor: default; }
     #submit-btn:active:not(.done):not(:disabled) { transform: scale(.98); }
 
     #status-msg {
@@ -207,6 +207,13 @@
     #pw-cancel { border: 1px solid var(--border); background: none; color: var(--muted); }
     #pw-ok     { border: none; background: var(--ua); color: #0f1117; font-weight: 600; }
 
+    .circle-check {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; border-radius: 50%;
+      border: 2px solid var(--text);
+      font-size: 1.1rem; line-height: 1;
+    }
+
     /* SPINNER */
     .spinner {
       display: inline-block; width: 16px; height: 16px;
@@ -243,7 +250,7 @@
     <div class="card-title">Schritt 3 — Ort</div>
     <div class="loc-grid" id="loc-grid"></div>
   </div>
-  <button id="submit-btn" onclick="submitCheckin()" disabled>Check-In</button>
+  <button id="submit-btn" onclick="submitCheckin()" disabled>Check-in</button>
   <div id="status-msg"></div>
 </div>
 
@@ -501,8 +508,8 @@ function updateBtn() {
   if (ok) btn.classList.toggle('aa', selectedRole==='AA');
   else btn.classList.remove('aa');
   btn.textContent = ok
-    ? `Check-In: ${selectedRole==='UA'?'UA/UÄ':'AA/AÄ'} — ${LOCATIONS[selectedLoc]}`
-    : 'Check-In';
+    ? `Check-in: ${selectedRole==='UA'?'UA/UÄ':'AA/AÄ'} — ${LOCATIONS[selectedLoc]}`
+    : 'Check-in';
 }
 
 // ── Submit ─────────────────────────────────────────────
@@ -542,7 +549,7 @@ async function submitCheckin() {
     btn.disabled = true;
     btn.classList.remove('ready','aa');
     btn.classList.add('done');
-    btn.textContent = `${name} — ${selectedRole==='UA'?'UA/UÄ':'AA/AÄ'} — ${LOCATIONS[selectedLoc]} ✓`;
+    btn.innerHTML = '<span class="circle-check">&#10003;</span>';
     document.getElementById('status-msg').textContent = '';
   } catch(e) {
     console.error('submit:', e);
