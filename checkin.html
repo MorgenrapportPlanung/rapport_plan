@@ -9,30 +9,31 @@
       --bg:      #0f1117;
       --surface: #181c27;
       --border:  #2a2f3d;
+      --border-light: #3d4558;
       --text:    #e8eaf0;
       --muted:   #6b7280;
       --ua:      #fbbf24;
       --aa:      #34d399;
-      --sf:      -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-      --sf-mono: 'SF Mono', ui-monospace, 'Cascadia Code', monospace;
+      --sf: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+      --sf-mono: 'SF Mono', ui-monospace, monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: var(--bg); color: var(--text);
       font-family: var(--sf);
-      font-size: 17px;
+      font-size: 20px;
       min-height: 100dvh; display: flex; flex-direction: column;
     }
 
-    /* ── CLOCK BAR ─────────────────────────────────────── */
+    /* ── CLOCK ─────────────────────────────────────────── */
     #clock-bar {
       font-family: var(--sf);
-      font-size: 1.35rem;
-      font-weight: 500;
+      font-size: 1.7rem;
+      font-weight: 600;
       color: var(--text);
       text-align: center;
-      padding: 1.1rem 1.5rem;
+      padding: 1.2rem 1.5rem;
       border-bottom: 1px solid var(--border);
       background: var(--surface);
       letter-spacing: -0.01em;
@@ -45,9 +46,9 @@
       position: sticky; top: 0; z-index: 10;
     }
     .tab-btn {
-      flex: 1; padding: 1rem 1rem; background: none; border: none;
+      flex: 1; padding: 1.1rem; background: none; border: none;
       color: var(--muted); font-family: var(--sf-mono);
-      font-size: .85rem; letter-spacing: .1em; text-transform: uppercase;
+      font-size: 1rem; letter-spacing: .1em; text-transform: uppercase;
       cursor: pointer; border-bottom: 2px solid transparent;
       margin-bottom: -2px; transition: all .2s;
     }
@@ -57,132 +58,156 @@
     .page { display: none; flex: 1; }
     .page.active { display: flex; flex-direction: column; }
 
-    /* ── CHECK-IN PAGE ─────────────────────────────────── */
-    #page-checkin { align-items: center; padding: 2rem 1rem 4rem; }
+    /* ── CHECK-IN ──────────────────────────────────────── */
+    #page-checkin { align-items: center; padding: 2rem 1rem 7rem; }
 
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 1.8rem;
-      width: 100%; max-width: 520px; margin-bottom: 1.2rem;
+      width: 100%; max-width: 560px; margin-bottom: 1.2rem;
     }
+    /* Lighter border for location card */
+    #card-loc { border-color: var(--border-light); }
+
     .card-title {
       font-family: var(--sf-mono);
-      font-size: .78rem; letter-spacing: .13em; text-transform: uppercase;
+      font-size: .9rem; letter-spacing: .13em; text-transform: uppercase;
       color: var(--muted); margin-bottom: 1.1rem;
     }
 
     input[type="text"] {
       width: 100%; background: var(--bg); border: 1px solid var(--border);
       border-radius: 10px; color: var(--text); font-family: var(--sf);
-      font-size: 1.15rem; padding: .75rem 1.1rem; outline: none; transition: border-color .2s;
+      font-size: 1.3rem; padding: .8rem 1.1rem; outline: none; transition: border-color .2s;
     }
     input[type="text"]:focus { border-color: var(--ua); }
     input[type="text"]::placeholder { color: var(--muted); }
 
-    .role-grid { display: flex; gap: .75rem; }
+    /* Role buttons */
+    .role-grid { display: flex; gap: .8rem; }
     .role-btn {
-      flex: 1; padding: 1rem 1rem; border-radius: 12px;
+      flex: 1; padding: 1.1rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
       color: var(--muted); font-family: var(--sf);
-      font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all .18s;
+      font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: all .18s;
     }
-    .role-btn:hover { border-color: var(--muted); color: var(--text); }
+    .role-btn:hover { border-color: var(--muted); }
     .role-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
     .role-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
 
-    .loc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; }
+    /* Location grid */
+    .loc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .65rem; }
     .loc-btn {
-      padding: .9rem .6rem; border-radius: 12px;
+      padding: 1rem .6rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
       color: var(--muted); font-family: var(--sf);
-      font-size: 1rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
+      font-size: 1.15rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
     }
-    .loc-btn:hover { border-color: var(--muted); color: var(--text); }
+    .loc-btn:hover { border-color: var(--muted); }
     .loc-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
     .loc-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
 
+    /* Divider between Saal 16 and Saal 3/19/20 */
+    .loc-divider {
+      grid-column: 1 / -1;
+      height: 1px;
+      background: var(--border-light);
+      margin: .2rem 0;
+    }
+
+    /* Submit button */
     #submit-btn {
-      width: 100%; max-width: 520px; padding: 1.1rem;
+      width: 100%; max-width: 560px; padding: 1.2rem;
       border-radius: 12px; border: none; background: #1e293b;
       color: var(--muted); font-family: var(--sf);
-      font-size: 1.05rem; font-weight: 600; cursor: not-allowed; transition: all .2s;
+      font-size: 1.2rem; font-weight: 600; cursor: not-allowed; transition: all .2s;
     }
     #submit-btn.ready { background: var(--ua); color: #0f1117; cursor: pointer; }
     #submit-btn.ready.aa { background: var(--aa); }
     #submit-btn.done {
-      background: #1e293b; color: var(--muted);
-      cursor: not-allowed; opacity: .6;
+      background: #0f2a1e; color: var(--aa);
+      border: 2px solid var(--aa);
+      cursor: default; opacity: 1;
     }
-    #submit-btn:active:not(.done) { transform: scale(.98); }
+    #submit-btn:active:not(.done):not(:disabled) { transform: scale(.98); }
 
     #status-msg {
-      max-width: 520px; width: 100%; text-align: center;
-      font-size: .95rem; color: var(--muted); min-height: 1.6em; margin-top: .8rem;
+      max-width: 560px; width: 100%; text-align: center;
+      font-size: 1rem; color: var(--muted); min-height: 1.4em; margin-top: .6rem;
     }
-    #status-msg.ok  { color: var(--aa); }
-    #status-msg.err { color: #f87171; }
 
-    /* ── OVERVIEW PAGE ─────────────────────────────────── */
-    #page-overview { padding: 1.5rem 1.2rem 4rem; flex: 1; }
+    /* ── OVERVIEW ──────────────────────────────────────── */
+    #page-overview { padding: 1.5rem 1.2rem 7rem; flex: 1; }
 
     .ov-header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 1rem;
+      display: flex; justify-content: center; align-items: center; margin-bottom: 1.1rem;
     }
     #last-updated {
-      font-family: var(--sf);
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: var(--text);
-      letter-spacing: -0.01em;
+      font-family: var(--sf); font-size: 1.3rem; font-weight: 600;
+      color: var(--text); letter-spacing: -0.01em;
     }
 
     .legend {
-      display: flex; gap: 1.4rem; margin-bottom: 1.2rem;
-      font-size: .95rem; color: var(--muted);
+      display: flex; gap: 1.5rem; margin-bottom: 1.2rem;
+      font-size: 1.1rem; color: var(--text); font-weight: 500;
     }
-    .legend span { display: flex; align-items: center; gap: .4rem; }
-    .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .legend span { display: flex; align-items: center; gap: .45rem; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
     .ov-cols {
       display: grid; grid-template-columns: repeat(8, 1fr); gap: .7rem; width: 100%;
     }
-    @media (max-width: 900px) { .ov-cols { grid-template-columns: repeat(4, 1fr); } }
-    @media (max-width: 500px) { .ov-cols { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 1000px) { .ov-cols { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 540px)  { .ov-cols { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Divider column between Saal 16 and Saal 3/19/20 */
+    .ov-col-divider {
+      width: 2px; background: var(--border-light);
+      border-radius: 2px; align-self: stretch;
+      display: none;
+    }
+    @media (min-width: 1001px) { .ov-col-divider { display: block; } }
 
     .ov-col {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; min-height: 160px; padding: .85rem .6rem;
+      border-radius: 12px; min-height: 160px; padding: .85rem .65rem;
       display: flex; flex-direction: column;
     }
     .ov-col-head {
-      font-family: var(--sf-mono); font-size: .72rem; letter-spacing: .05em;
+      font-family: var(--sf-mono); font-size: .82rem; letter-spacing: .05em;
       text-transform: uppercase; color: var(--muted); text-align: center;
       padding-bottom: .6rem; margin-bottom: .6rem;
       border-bottom: 1px solid var(--border); line-height: 1.4; flex-shrink: 0;
     }
     .ov-names { flex: 1; }
     .ov-name {
-      font-size: .9rem; font-weight: 500; padding: .25rem .45rem;
+      font-size: 1rem; font-weight: 500; padding: .28rem .5rem;
       border-radius: 6px; margin-bottom: .25rem; text-align: center;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .ov-name.ua { color: var(--ua); background: #28200a; }
-    .ov-name.aa { color: var(--aa); background: #0f2a1e; }
-    .ov-name.me { outline: 1px solid currentColor; }
-    .ov-empty   { color: var(--muted); font-size: .85rem; text-align: center; margin-top: .5rem; }
-    .ov-count {
-      display: flex; justify-content: center; gap: .4rem; margin-top: .6rem;
-      font-family: var(--sf-mono); font-size: .75rem; flex-shrink: 0;
-    }
-    .cnt-ua { color: var(--ua); }
-    .cnt-aa { color: var(--aa); }
+    /* Both UA and AA get outline */
+    .ov-name.ua { color: var(--ua); background: #28200a; outline: 1px solid var(--ua); }
+    .ov-name.aa { color: var(--aa); background: #0f2a1e; outline: 1px solid var(--aa); }
+    .ov-name.me { outline-width: 2px; }
+    .ov-empty { color: var(--muted); font-size: .95rem; text-align: center; margin-top: .5rem; }
 
+    /* ── REFRESH BUTTON ────────────────────────────────── */
+    #refresh-btn {
+      position: fixed; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: .5rem;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-family: var(--sf); font-size: 1rem;
+      padding: .6rem 1.2rem; border-radius: 999px;
+      transition: color .2s;
+      z-index: 20;
+    }
+    #refresh-btn:hover { color: var(--text); }
+    #refresh-btn svg { width: 18px; height: 18px; }
+
+    /* ── SPINNER ───────────────────────────────────────── */
     .spinner {
-      display: inline-block; width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,.12); border-top-color: currentColor;
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.15); border-top-color: currentColor;
       border-radius: 50%; animation: spin .6s linear infinite;
       vertical-align: middle; margin-right: .4rem;
     }
@@ -211,7 +236,7 @@
       <button class="role-btn" data-role="AA" onclick="selectRole('AA')">AA / AÄ</button>
     </div>
   </div>
-  <div class="card">
+  <div class="card" id="card-loc">
     <div class="card-title">Schritt 3 — Ort</div>
     <div class="loc-grid" id="loc-grid"></div>
   </div>
@@ -231,8 +256,16 @@
   <div class="ov-cols" id="ov-cols"></div>
 </div>
 
+<!-- REFRESH BUTTON (always visible) -->
+<button id="refresh-btn" onclick="triggerRefresh()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+    <path d="M3 3v5h5"/>
+  </svg>
+  Zurücksetzen
+</button>
+
 <script>
-// ══════════════════════════════════════════════════════
 const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
 const RESET_HOUR   = 10;
 const RESET_MINUTE = 0;
@@ -240,7 +273,7 @@ const LOCATIONS = [
   'Saal 11', 'Saal 13', 'Saal 14', 'Saal 15',
   'Saal 16', 'Saal 3/19/20', 'SS Gross', 'SS Klein',
 ];
-// ══════════════════════════════════════════════════════
+const LOC_DIVIDER_AFTER = 4; // divider after index 4 (Saal 16)
 
 let myId = localStorage.getItem('cid');
 if (!myId) {
@@ -266,7 +299,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function startClock() {
   const el = document.getElementById('clock-bar');
   const tick = () => {
-    const now = new Date();
+    const now     = new Date();
     const weekday = now.toLocaleDateString('de-CH', { weekday: 'long' });
     const date    = now.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const time    = now.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
@@ -275,7 +308,7 @@ function startClock() {
   tick(); setInterval(tick, 1000);
 }
 
-// ── Firebase realtime listener ─────────────────────────
+// ── Firebase listener ──────────────────────────────────
 function startRealtimeListener() {
   const es = new EventSource(`${FIREBASE_URL}/checkin.json`);
   es.addEventListener('put', e => {
@@ -290,11 +323,7 @@ function startRealtimeListener() {
       renderOverview();
     }
   });
-  es.onerror = () => {
-    es.close();
-    loadData();
-    setInterval(loadData, 15_000);
-  };
+  es.onerror = () => { es.close(); loadData(); setInterval(loadData, 15_000); };
 }
 
 async function loadData() {
@@ -306,22 +335,6 @@ async function loadData() {
   } catch(e) { console.error('load:', e); }
 }
 
-async function saveData() {
-  const res = await fetch(`${FIREBASE_URL}/checkin.json`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(currentData),
-  });
-  if (!res.ok) throw new Error(await res.text());
-}
-
-async function saveEntry(entry) {
-  const res = await fetch(`${FIREBASE_URL}/checkin/entries/${myId}.json`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(entry),
-  });
-  if (!res.ok) throw new Error(await res.text());
-}
-
 function emptyData() { return { lastReset: todayStr(), entries: {} }; }
 function todayStr()  { return new Date().toISOString().slice(0, 10); }
 
@@ -331,8 +344,35 @@ async function maybeReset() {
   const past = now.getHours() > RESET_HOUR
     || (now.getHours() === RESET_HOUR && now.getMinutes() >= RESET_MINUTE);
   if (currentData.lastReset !== todayStr() && past) {
-    currentData = emptyData(); await saveData();
+    currentData = emptyData();
+    await writeAll(currentData);
   }
+}
+
+async function writeAll(data) {
+  const res = await fetch(`${FIREBASE_URL}/checkin.json`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+// ── Refresh / Reset ────────────────────────────────────
+async function triggerRefresh() {
+  if (!confirm('Alle Einträge löschen?')) return;
+  try {
+    const fresh = emptyData();
+    await writeAll(fresh);
+    currentData = fresh;
+    hasCheckedIn = false;
+    // Reset button UI
+    const btn = document.getElementById('submit-btn');
+    btn.classList.remove('done');
+    btn.disabled = true;
+    document.getElementById('status-msg').textContent = '';
+    updateBtn();
+    renderOverview();
+  } catch(e) { console.error(e); alert('Fehler beim Zurücksetzen'); }
 }
 
 // ── Tabs ───────────────────────────────────────────────
@@ -344,10 +384,16 @@ function showTab(tab) {
   if (tab === 'overview') loadData();
 }
 
-// ── Build UI ───────────────────────────────────────────
+// ── Build location buttons ─────────────────────────────
 function buildLocGrid() {
   const grid = document.getElementById('loc-grid');
   LOCATIONS.forEach((name, i) => {
+    // Insert divider between Saal 16 (index 4) and Saal 3/19/20 (index 5)
+    if (i === LOC_DIVIDER_AFTER + 1) {
+      const div = document.createElement('div');
+      div.className = 'loc-divider';
+      grid.appendChild(div);
+    }
     const btn = document.createElement('button');
     btn.className = 'loc-btn'; btn.id = `lb-${i}`;
     btn.textContent = name; btn.onclick = () => selectLoc(i);
@@ -376,7 +422,7 @@ function paintLoc(idx) {
 }
 
 function updateBtn() {
-  if (hasCheckedIn) return; // locked after submit
+  if (hasCheckedIn) return;
   const name = document.getElementById('name-input').value.trim();
   const btn  = document.getElementById('submit-btn');
   const ok   = !!(name && selectedRole && selectedLoc !== null);
@@ -390,37 +436,36 @@ function updateBtn() {
 }
 
 // ── Submit ─────────────────────────────────────────────
-
 async function submitCheckin() {
   if (hasCheckedIn) return;
-  const name = document.getElementById("name-input").value.trim();
+  const name = document.getElementById('name-input').value.trim();
   if (!name || selectedRole === null || selectedLoc === null) return;
-  const btn = document.getElementById("submit-btn");
+
+  const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.innerHTML = "<span class=\"spinner\"></span>Speichern…";
-  localStorage.setItem("checkin_name", name);
+  btn.innerHTML = '<span class="spinner"></span>Speichern…';
+  localStorage.setItem('checkin_name', name);
+
   try {
-    const res = await fetch(FIREBASE_URL + "/checkin.json?t=" + Date.now());
+    const res = await fetch(`${FIREBASE_URL}/checkin.json?t=${Date.now()}`);
     const latest = (await res.json()) || {};
     const entries = latest.entries || {};
-    entries[myId] = { name: name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
-    const putRes = await fetch(FIREBASE_URL + "/checkin.json", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lastReset: todayStr(), entries: entries }),
-    });
-    if (!putRes.ok) throw new Error(await putRes.text());
-    currentData = { lastReset: todayStr(), entries: entries };
+    entries[myId] = { name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
+
+    await writeAll({ lastReset: todayStr(), entries });
+    currentData = { lastReset: todayStr(), entries };
     renderOverview();
+
     hasCheckedIn = true;
     btn.disabled = true;
-    btn.classList.remove("ready", "aa");
-    btn.classList.add("done");
-    btn.textContent = "u2713 Eingetragen in u201e" + LOCATIONS[selectedLoc] + "u201c";
-    setStatus(name + " � " + (selectedRole === "UA" ? "UA/U�" : "AA/A�") + " � " + LOCATIONS[selectedLoc], "ok");
+    btn.classList.remove('ready', 'aa');
+    btn.classList.add('done');
+    const roleLabel = selectedRole === 'UA' ? 'UA/UÄ' : 'AA/AÄ';
+    btn.textContent = `${name}  ·  ${roleLabel}  ·  ${LOCATIONS[selectedLoc]}`;
+    document.getElementById('status-msg').textContent = '';
   } catch(e) {
     console.error(e);
-    setStatus("Fehler – bitte nochmal versuchen", "err");
+    document.getElementById('status-msg').textContent = 'Fehler – bitte nochmal versuchen';
     btn.disabled = false; updateBtn();
   }
 }
@@ -435,10 +480,16 @@ function renderOverview() {
     if (e && e.loc >= 0 && e.loc < LOCATIONS.length)
       buckets[e.loc].push({ name: e.name, role: e.role, isMe: uid === myId });
   });
+
   LOCATIONS.forEach((locName, i) => {
+    // Insert visual divider between Saal 16 and Saal 3/19/20 (only on wide screens via CSS)
+    if (i === LOC_DIVIDER_AFTER + 1) {
+      const divider = document.createElement('div');
+      divider.className = 'ov-col-divider';
+      wrap.appendChild(divider);
+    }
+
     const members = buckets[i];
-    const uaCount = members.filter(m => m.role === 'UA').length;
-    const aaCount = members.filter(m => m.role === 'AA').length;
     const col = document.createElement('div');
     col.className = 'ov-col';
     col.innerHTML = `
@@ -450,22 +501,12 @@ function renderOverview() {
               `<div class="ov-name ${m.role.toLowerCase()}${m.isMe ? ' me' : ''}" title="${m.name}">${m.name}</div>`
             ).join('')}
       </div>
-      ${(uaCount || aaCount) ? `
-        <div class="ov-count">
-          ${uaCount ? `<span class="cnt-ua">${uaCount}&nbsp;UA</span>` : ''}
-          ${aaCount ? `<span class="cnt-aa">${aaCount}&nbsp;AA</span>` : ''}
-        </div>` : ''}
     `;
     wrap.appendChild(col);
   });
 
   const time = new Date().toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' });
   document.getElementById('last-updated').textContent = `Stand: ${time}`;
-}
-
-function setStatus(msg, type = '') {
-  const el = document.getElementById('status-msg');
-  el.textContent = msg; el.className = type;
 }
 </script>
 </body>
