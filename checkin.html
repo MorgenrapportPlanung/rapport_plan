@@ -6,37 +6,32 @@
   <title>Morgen Check-in</title>
   <style>
     :root {
-      --bg:      #0f1117;
-      --surface: #181c27;
-      --border:  #2a2f3d;
+      --bg:           #0f1117;
+      --surface:      #181c27;
+      --border:       #2a2f3d;
       --border-light: #3d4558;
-      --text:    #e8eaf0;
-      --muted:   #6b7280;
-      --ua:      #fbbf24;
-      --aa:      #34d399;
-      --sf: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+      --text:         #e8eaf0;
+      --muted:        #6b7280;
+      --ua:           #fbbf24;
+      --aa:           #34d399;
+      --sf:      -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
       --sf-mono: 'SF Mono', ui-monospace, monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: var(--bg); color: var(--text);
-      font-family: var(--sf);
-      font-size: 20px;
+      font-family: var(--sf); font-size: 20px;
       min-height: 100dvh; display: flex; flex-direction: column;
     }
 
     /* ── CLOCK ─────────────────────────────────────────── */
     #clock-bar {
-      font-family: var(--sf);
-      font-size: 1.7rem;
-      font-weight: 600;
-      color: var(--text);
-      text-align: center;
+      font-family: var(--sf); font-size: 1.7rem; font-weight: 600;
+      color: var(--text); text-align: center;
       padding: 1.2rem 1.5rem;
       border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      letter-spacing: -0.01em;
+      background: var(--surface); letter-spacing: -0.01em;
     }
 
     /* ── TABS ──────────────────────────────────────────── */
@@ -66,12 +61,11 @@
       border-radius: 16px; padding: 1.8rem;
       width: 100%; max-width: 560px; margin-bottom: 1.2rem;
     }
-    /* Lighter border for location card */
     #card-loc { border-color: var(--border-light); }
 
     .card-title {
-      font-family: var(--sf-mono);
-      font-size: .9rem; letter-spacing: .13em; text-transform: uppercase;
+      font-family: var(--sf-mono); font-size: .9rem;
+      letter-spacing: .13em; text-transform: uppercase;
       color: var(--muted); margin-bottom: 1.1rem;
     }
 
@@ -88,8 +82,8 @@
     .role-btn {
       flex: 1; padding: 1.1rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
-      color: var(--muted); font-family: var(--sf);
-      font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: all .18s;
+      color: var(--text); font-family: var(--sf);
+      font-size: 1.3rem; font-weight: 600; cursor: pointer; transition: all .18s;
     }
     .role-btn:hover { border-color: var(--muted); }
     .role-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
@@ -97,25 +91,28 @@
 
     /* Location grid */
     .loc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .65rem; }
+
     .loc-btn {
       padding: 1rem .6rem; border-radius: 12px;
       border: 2px solid var(--border); background: var(--bg);
-      color: var(--muted); font-family: var(--sf);
-      font-size: 1.15rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
+      color: var(--text); font-family: var(--sf);
+      font-size: 1.3rem; font-weight: 500; cursor: pointer; transition: all .18s; text-align: center;
     }
     .loc-btn:hover { border-color: var(--muted); }
     .loc-btn.sel-ua { border-color: var(--ua); color: var(--ua); background: #28200a; }
     .loc-btn.sel-aa { border-color: var(--aa); color: var(--aa); background: #0f2a1e; }
 
-    /* Divider between Saal 16 and Saal 3/19/20 */
+    /* Extra spacing around divider */
+    .loc-btn.before-divider { margin-bottom: 1rem; }
+    .loc-btn.after-divider  { margin-top: 1rem; }
+
     .loc-divider {
       grid-column: 1 / -1;
       height: 1px;
       background: var(--border-light);
-      margin: .2rem 0;
     }
 
-    /* Submit button */
+    /* Submit */
     #submit-btn {
       width: 100%; max-width: 560px; padding: 1.2rem;
       border-radius: 12px; border: none; background: #1e293b;
@@ -123,11 +120,10 @@
       font-size: 1.2rem; font-weight: 600; cursor: not-allowed; transition: all .2s;
     }
     #submit-btn.ready { background: var(--ua); color: #0f1117; cursor: pointer; }
-    #submit-btn.ready.aa { background: var(--aa); }
+    #submit-btn.ready.aa { background: var(--aa); color: #0f1117; }
     #submit-btn.done {
       background: #0f2a1e; color: var(--aa);
-      border: 2px solid var(--aa);
-      cursor: default; opacity: 1;
+      border: 2px solid var(--aa); cursor: default;
     }
     #submit-btn:active:not(.done):not(:disabled) { transform: scale(.98); }
 
@@ -137,11 +133,13 @@
     }
 
     /* ── OVERVIEW ──────────────────────────────────────── */
-    #page-overview { padding: 1.5rem 1.2rem 7rem; flex: 1; }
+    #page-overview { padding: 1.5rem 0 7rem; flex: 1; display: flex; flex-direction: column; }
 
-    .ov-header {
-      display: flex; justify-content: center; align-items: center; margin-bottom: 1.1rem;
+    .ov-top {
+      padding: 0 1.2rem;
     }
+
+    .ov-header { display: flex; justify-content: center; margin-bottom: 1.1rem; }
     #last-updated {
       font-family: var(--sf); font-size: 1.3rem; font-weight: 600;
       color: var(--text); letter-spacing: -0.01em;
@@ -154,25 +152,40 @@
     .legend span { display: flex; align-items: center; gap: .45rem; }
     .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
-    .ov-cols {
-      display: grid; grid-template-columns: repeat(8, 1fr); gap: .7rem; width: 100%;
+    /* Desktop: all 8 in one row, scroll horizontally if needed */
+    .ov-scroll-wrap {
+      overflow-x: auto;
+      padding: 0 1.2rem 1rem;
+      -webkit-overflow-scrolling: touch;
     }
-    @media (max-width: 1000px) { .ov-cols { grid-template-columns: repeat(4, 1fr); } }
-    @media (max-width: 540px)  { .ov-cols { grid-template-columns: repeat(2, 1fr); } }
 
-    /* Divider column between Saal 16 and Saal 3/19/20 */
-    .ov-col-divider {
-      width: 2px; background: var(--border-light);
-      border-radius: 2px; align-self: stretch;
-      display: none;
+    .ov-cols {
+      display: flex;
+      flex-direction: row;
+      gap: 0;
+      width: max-content; /* shrink to fit, but allow horizontal scroll */
+      min-width: 100%;
     }
-    @media (min-width: 1001px) { .ov-col-divider { display: block; } }
 
     .ov-col {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; min-height: 160px; padding: .85rem .65rem;
+      border-radius: 12px; min-height: 160px;
+      padding: .85rem .65rem;
       display: flex; flex-direction: column;
+      flex: 1;
+      min-width: 90px;
     }
+    .ov-col + .ov-col { margin-left: .7rem; }
+
+    /* Divider between Saal 16 and Saal 3/19/20 */
+    .ov-col-divider {
+      width: 1px;
+      background: var(--border-light);
+      margin: 0 .5rem;
+      align-self: stretch;
+      flex-shrink: 0;
+    }
+
     .ov-col-head {
       font-family: var(--sf-mono); font-size: .82rem; letter-spacing: .05em;
       text-transform: uppercase; color: var(--muted); text-align: center;
@@ -185,22 +198,34 @@
       border-radius: 6px; margin-bottom: .25rem; text-align: center;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    /* Both UA and AA get outline */
     .ov-name.ua { color: var(--ua); background: #28200a; outline: 1px solid var(--ua); }
     .ov-name.aa { color: var(--aa); background: #0f2a1e; outline: 1px solid var(--aa); }
     .ov-name.me { outline-width: 2px; }
     .ov-empty { color: var(--muted); font-size: .95rem; text-align: center; margin-top: .5rem; }
 
-    /* ── REFRESH BUTTON ────────────────────────────────── */
+    /* Smartphone: tile layout */
+    @media (max-width: 600px) {
+      .ov-scroll-wrap { overflow-x: visible; padding: 0 1rem 1rem; }
+      .ov-cols {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        width: 100%;
+        gap: .6rem;
+      }
+      .ov-col { margin-left: 0 !important; min-width: 0; flex: unset; }
+      .ov-col-divider { display: none; }
+    }
+
+    /* ── REFRESH BUTTON (only on overview) ─────────────── */
     #refresh-btn {
       position: fixed; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
-      display: flex; align-items: center; gap: .5rem;
+      display: none; align-items: center; gap: .5rem;
       background: none; border: none; cursor: pointer;
       color: var(--muted); font-family: var(--sf); font-size: 1rem;
-      padding: .6rem 1.2rem; border-radius: 999px;
-      transition: color .2s;
-      z-index: 20;
+      padding: .6rem 1.4rem; border-radius: 999px;
+      transition: color .2s; z-index: 20;
     }
+    #refresh-btn.visible { display: flex; }
     #refresh-btn:hover { color: var(--text); }
     #refresh-btn svg { width: 18px; height: 18px; }
 
@@ -246,17 +271,19 @@
 
 <!-- OVERVIEW -->
 <div id="page-overview" class="page">
-  <div class="ov-header">
-    <span id="last-updated">—</span>
+  <div class="ov-top">
+    <div class="ov-header"><span id="last-updated">—</span></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--ua)"></span>UA / UÄ</span>
+      <span><span class="dot" style="background:var(--aa)"></span>AA / AÄ</span>
+    </div>
   </div>
-  <div class="legend">
-    <span><span class="dot" style="background:var(--ua)"></span>UA / UÄ</span>
-    <span><span class="dot" style="background:var(--aa)"></span>AA / AÄ</span>
+  <div class="ov-scroll-wrap">
+    <div class="ov-cols" id="ov-cols"></div>
   </div>
-  <div class="ov-cols" id="ov-cols"></div>
 </div>
 
-<!-- REFRESH BUTTON (always visible) -->
+<!-- REFRESH (only visible on overview tab) -->
 <button id="refresh-btn" onclick="triggerRefresh()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -266,14 +293,14 @@
 </button>
 
 <script>
-const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
-const RESET_HOUR   = 10;
-const RESET_MINUTE = 0;
+const FIREBASE_URL  = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
+const RESET_HOUR    = 0;   // Mitternacht
+const RESET_MINUTE  = 0;
 const LOCATIONS = [
   'Saal 11', 'Saal 13', 'Saal 14', 'Saal 15',
   'Saal 16', 'Saal 3/19/20', 'SS Gross', 'SS Klein',
 ];
-const LOC_DIVIDER_AFTER = 4; // divider after index 4 (Saal 16)
+const DIVIDER_AFTER = 4; // insert divider after index 4 (Saal 16)
 
 let myId = localStorage.getItem('cid');
 if (!myId) {
@@ -308,7 +335,7 @@ function startClock() {
   tick(); setInterval(tick, 1000);
 }
 
-// ── Firebase listener ──────────────────────────────────
+// ── Firebase ───────────────────────────────────────────
 function startRealtimeListener() {
   const es = new EventSource(`${FIREBASE_URL}/checkin.json`);
   es.addEventListener('put', e => {
@@ -335,6 +362,14 @@ async function loadData() {
   } catch(e) { console.error('load:', e); }
 }
 
+async function writeAll(data) {
+  const res = await fetch(`${FIREBASE_URL}/checkin.json`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
 function emptyData() { return { lastReset: todayStr(), entries: {} }; }
 function todayStr()  { return new Date().toISOString().slice(0, 10); }
 
@@ -349,23 +384,14 @@ async function maybeReset() {
   }
 }
 
-async function writeAll(data) {
-  const res = await fetch(`${FIREBASE_URL}/checkin.json`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error(await res.text());
-}
-
-// ── Refresh / Reset ────────────────────────────────────
+// ── Refresh ────────────────────────────────────────────
 async function triggerRefresh() {
   if (!confirm('Alle Einträge löschen?')) return;
   try {
     const fresh = emptyData();
     await writeAll(fresh);
-    currentData = fresh;
+    currentData  = fresh;
     hasCheckedIn = false;
-    // Reset button UI
     const btn = document.getElementById('submit-btn');
     btn.classList.remove('done');
     btn.disabled = true;
@@ -381,22 +407,32 @@ function showTab(tab) {
   document.getElementById('tab-overview').classList.toggle('active', tab === 'overview');
   document.getElementById('page-checkin').classList.toggle('active', tab === 'checkin');
   document.getElementById('page-overview').classList.toggle('active', tab === 'overview');
+  // Refresh button only visible on overview
+  document.getElementById('refresh-btn').classList.toggle('visible', tab === 'overview');
   if (tab === 'overview') loadData();
 }
 
-// ── Build location buttons ─────────────────────────────
+// ── Build location grid ────────────────────────────────
 function buildLocGrid() {
   const grid = document.getElementById('loc-grid');
   LOCATIONS.forEach((name, i) => {
-    // Insert divider between Saal 16 (index 4) and Saal 3/19/20 (index 5)
-    if (i === LOC_DIVIDER_AFTER + 1) {
+    if (i === DIVIDER_AFTER + 1) {
+      // Extra bottom margin on the two buttons before divider
+      const prevBtns = grid.querySelectorAll('.loc-btn');
+      prevBtns.forEach(b => {
+        if (b.id === `lb-${DIVIDER_AFTER - 1}` || b.id === `lb-${DIVIDER_AFTER}`) {
+          b.classList.add('before-divider');
+        }
+      });
       const div = document.createElement('div');
       div.className = 'loc-divider';
       grid.appendChild(div);
     }
     const btn = document.createElement('button');
     btn.className = 'loc-btn'; btn.id = `lb-${i}`;
-    btn.textContent = name; btn.onclick = () => selectLoc(i);
+    btn.textContent = name;
+    if (i === DIVIDER_AFTER + 1 || i === DIVIDER_AFTER + 2) btn.classList.add('after-divider');
+    btn.onclick = () => selectLoc(i);
     grid.appendChild(btn);
   });
 }
@@ -411,7 +447,9 @@ function selectRole(role) {
 
 function selectLoc(idx) {
   selectedLoc = idx;
-  document.querySelectorAll('.loc-btn').forEach(b => b.className = 'loc-btn');
+  document.querySelectorAll('.loc-btn').forEach(b => {
+    b.classList.remove('sel-ua', 'sel-aa');
+  });
   paintLoc(idx); updateBtn();
 }
 
@@ -448,10 +486,9 @@ async function submitCheckin() {
 
   try {
     const res = await fetch(`${FIREBASE_URL}/checkin.json?t=${Date.now()}`);
-    const latest = (await res.json()) || {};
+    const latest  = (await res.json()) || {};
     const entries = latest.entries || {};
     entries[myId] = { name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
-
     await writeAll({ lastReset: todayStr(), entries });
     currentData = { lastReset: todayStr(), entries };
     renderOverview();
@@ -482,13 +519,11 @@ function renderOverview() {
   });
 
   LOCATIONS.forEach((locName, i) => {
-    // Insert visual divider between Saal 16 and Saal 3/19/20 (only on wide screens via CSS)
-    if (i === LOC_DIVIDER_AFTER + 1) {
-      const divider = document.createElement('div');
-      divider.className = 'ov-col-divider';
-      wrap.appendChild(divider);
+    if (i === DIVIDER_AFTER + 1) {
+      const div = document.createElement('div');
+      div.className = 'ov-col-divider';
+      wrap.appendChild(div);
     }
-
     const members = buckets[i];
     const col = document.createElement('div');
     col.className = 'ov-col';
