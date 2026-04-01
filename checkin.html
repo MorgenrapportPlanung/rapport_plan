@@ -134,14 +134,14 @@
     .ov-col-divider { width: 1px; background: rgba(232,234,240,.4); margin: 0 1.4rem; align-self: stretch; flex-shrink: 0; }
 
     .ov-col-head {
-      font-family: var(--sf); font-size: 1.3rem; font-weight: 600;
+      font-family: var(--sf); font-size: 1.5rem; font-weight: 600;
       color: var(--text); text-align: center;
       padding-bottom: .6rem; margin-bottom: .6rem;
       border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
     .ov-names { flex: 1; }
     .ov-name {
-      font-size: 1rem; font-weight: 500; padding: .5rem .5rem;
+      font-size: 1.2rem; font-weight: 500; padding: .5rem .5rem;
       border-radius: 6px; margin-bottom: .5rem; text-align: center;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
@@ -1191,33 +1191,48 @@ async function loadAnalytics() {
 
     statusEl.textContent = `${allEntries.length} Änderungen an ${totalDays} Tagen`;
 
-    // Chart 1: Most frequent moves (role + from → to)
+    // Chart 1: Most frequent moves — grouped by from→to pair
     const moveCounts = {};
     allEntries.forEach(e => {
       const key = `${e.role}|${e.fromName}|${e.toName}`;
       moveCounts[key] = (moveCounts[key] || 0) + 1;
     });
-    const sorted = Object.entries(moveCounts)
-      .map(([key, count]) => { const [role, from, to] = key.split('|'); return { role, from, to, count }; })
-      .sort((a, b) => b.count - a.count);
-    const maxCount = sorted[0]?.count || 1;
+    const moveItems = Object.entries(moveCounts)
+      .map(([key, count]) => { const [role, from, to] = key.split('|'); return { role, from, to, count }; });
+
+    // Group by from→to pair, sort groups by total count desc
+    const pairGroups = {};
+    moveItems.forEach(item => {
+      const pairKey = `${item.from}|${item.to}`;
+      if (!pairGroups[pairKey]) pairGroups[pairKey] = { from: item.from, to: item.to, items: [], total: 0 };
+      pairGroups[pairKey].items.push(item);
+      pairGroups[pairKey].total += item.count;
+    });
+    const sortedGroups = Object.values(pairGroups).sort((a, b) => b.total - a.total);
+    // Sort items within each group by count desc
+    sortedGroups.forEach(g => g.items.sort((a, b) => b.count - a.count));
+
+    const maxCount = Math.max(...moveItems.map(m => m.count), 1);
 
     let html = '<div class="ana-chart-group"><div class="ana-chart-title">Häufigste Verschiebungen</div>';
-    sorted.forEach(item => {
-      const pct = Math.round((item.count / maxCount) * 100);
-      const rc = item.role === 'UA' ? 'ua' : 'aa';
-      const rl = item.role === 'UA' ? 'UA/UÄ' : 'AA/AÄ';
-      const detail = buildWeekdayDetail(
-        e => e.role === item.role && e.fromName === item.from && e.toName === item.to, rc
-      );
-      html += `<div class="ana-bar-wrap">
-        <div class="ana-bar-row" onclick="toggleBarDetail(this)">
-          <span class="ana-expand-arrow">▶</span>
-          <div class="ana-bar-label">${rl}: ${item.from} → ${item.to}</div>
-          <div class="ana-bar-track"><div class="ana-bar-fill ${rc}" style="width:${pct}%"><span class="ana-bar-count">${item.count}×</span></div></div>
-        </div>
-        <div class="ana-detail">${detail}</div>
-      </div>`;
+    sortedGroups.forEach((group, gi) => {
+      if (gi > 0) html += '<div style="height:.7rem;"></div>'; // gap between groups
+      group.items.forEach(item => {
+        const pct = Math.round((item.count / maxCount) * 100);
+        const rc = item.role === 'UA' ? 'ua' : 'aa';
+        const rl = item.role === 'UA' ? 'UA/UÄ' : 'AA/AÄ';
+        const detail = buildWeekdayDetail(
+          e => e.role === item.role && e.fromName === item.from && e.toName === item.to, rc
+        );
+        html += `<div class="ana-bar-wrap">
+          <div class="ana-bar-row" onclick="toggleBarDetail(this)">
+            <span class="ana-expand-arrow">▶</span>
+            <div class="ana-bar-label">${rl}: ${item.from} → ${item.to}</div>
+            <div class="ana-bar-track"><div class="ana-bar-fill ${rc}" style="width:${pct}%"><span class="ana-bar-count">${item.count}×</span></div></div>
+          </div>
+          <div class="ana-detail">${detail}</div>
+        </div>`;
+      });
     });
     html += '</div>';
 
