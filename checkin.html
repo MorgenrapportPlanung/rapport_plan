@@ -340,9 +340,45 @@
       margin-bottom: .6rem; padding-bottom: .4rem;
       border-bottom: 1px solid var(--border);
     }
+    .ana-bar-wrap { margin-bottom: .4rem; }
     .ana-bar-row {
       display: flex; align-items: center; gap: .6rem;
-      margin-bottom: .5rem;
+      cursor: pointer; padding: .15rem 0; border-radius: 6px;
+      transition: background .15s;
+    }
+    .ana-bar-row:hover { background: rgba(255,255,255,.03); }
+    .ana-bar-row .ana-expand-arrow {
+      font-size: .7rem; color: var(--muted); width: 14px; text-align: center;
+      flex-shrink: 0; transition: transform .2s;
+    }
+    .ana-bar-wrap.open .ana-expand-arrow { transform: rotate(90deg); }
+    .ana-detail {
+      display: none; padding: .3rem 0 .3rem 154px;
+    }
+    .ana-bar-wrap.open .ana-detail { display: block; }
+    .ana-detail-row {
+      display: flex; align-items: center; gap: .5rem;
+      margin-bottom: .3rem;
+    }
+    .ana-detail-day {
+      font-size: .75rem; color: var(--muted); width: 28px; text-align: right; flex-shrink: 0;
+    }
+    .ana-detail-track {
+      flex: 1; height: 16px; background: var(--bg);
+      border-radius: 4px; overflow: hidden;
+    }
+    .ana-detail-fill {
+      height: 100%; border-radius: 4px;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: .4rem; min-width: 22px;
+    }
+    .ana-detail-fill.ua { background: rgba(96,165,250,.2); }
+    .ana-detail-fill.aa { background: rgba(52,211,153,.2); }
+    .ana-detail-count {
+      font-size: .65rem; font-weight: 600; color: var(--text);
+    }
+    @media (max-width: 600px) {
+      .ana-detail { padding-left: 114px; }
     }
     .ana-bar-label {
       font-size: .8rem; color: var(--muted); min-width: 140px;
@@ -1054,6 +1090,42 @@ function timeToMinutes(hhmm) {
   return h * 60 + m;
 }
 
+// Store raw time-filtered entries (no day/role/loc filter) for detail breakdowns
+let anaRawEntries = [];
+const DAY_LABELS_DE = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+const DAY_ORDER = [1,2,3,4,5,6,0]; // Mo-So
+
+function buildWeekdayDetail(matchFn, roleClass) {
+  // Count per weekday from raw entries (only date+time filtered)
+  const dayCounts = {};
+  anaRawEntries.forEach(e => {
+    if (matchFn(e)) {
+      dayCounts[e.weekday] = (dayCounts[e.weekday] || 0) + 1;
+    }
+  });
+  const maxDay = Math.max(...Object.values(dayCounts), 1);
+  // Sort by count descending
+  const sorted = DAY_ORDER
+    .filter(d => (dayCounts[d] || 0) > 0)
+    .sort((a, b) => (dayCounts[b] || 0) - (dayCounts[a] || 0));
+  if (sorted.length === 0) return '<div style="font-size:.75rem;color:var(--muted);padding:.3rem 0;">Keine Daten</div>';
+  let h = '';
+  sorted.forEach(d => {
+    const count = dayCounts[d] || 0;
+    const pct = Math.round((count / maxDay) * 100);
+    const rc = roleClass || 'ua';
+    h += `<div class="ana-detail-row">
+      <div class="ana-detail-day">${DAY_LABELS_DE[d]}</div>
+      <div class="ana-detail-track"><div class="ana-detail-fill ${rc}" style="width:${pct}%"><span class="ana-detail-count">${count}×</span></div></div>
+    </div>`;
+  });
+  return h;
+}
+
+function toggleBarDetail(el) {
+  el.closest('.ana-bar-wrap').classList.toggle('open');
+}
+
 async function loadAnalytics() {
   const fromStr = document.getElementById('ana-from').value;
   const toStr = document.getElementById('ana-to').value;
@@ -1081,28 +1153,35 @@ async function loadAnalytics() {
     const tFromMin = timeFrom ? timeToMinutes(timeFrom) : 0;
     const tToMin = timeTo ? timeToMinutes(timeTo) : 1440;
 
+    // Build raw entries: only date range + time filter (for detail breakdowns)
+    anaRawEntries = [];
     const allEntries = [];
     let totalDays = 0;
+    const seenDays = new Set();
+
     Object.entries(data).forEach(([dateKey, dayEntries]) => {
       const d = new Date(dateKey + 'T12:00:00');
       const weekday = d.getDay();
-      if (anaSelectedDays.size > 0 && !anaSelectedDays.has(weekday)) return;
-      totalDays++;
-      if (dayEntries) {
-        Object.values(dayEntries).forEach(entry => {
-          // Time filter
-          if (entry.time) {
-            const entryMin = timeToMinutes(entry.time);
-            if (entryMin < tFromMin || entryMin > tToMin) return;
-          }
-          // Role filter
-          if (anaSelectedRoles.size > 0 && !anaSelectedRoles.has(entry.role)) return;
-          // Location filter (match fromName OR toName)
-          if (anaSelectedLocs.size > 0 && !anaSelectedLocs.has(entry.fromName) && !anaSelectedLocs.has(entry.toName)) return;
-          allEntries.push({ ...entry, date: dateKey, weekday });
-        });
-      }
+      if (!dayEntries) return;
+
+      Object.values(dayEntries).forEach(entry => {
+        // Time filter applies to both raw and filtered
+        if (entry.time) {
+          const entryMin = timeToMinutes(entry.time);
+          if (entryMin < tFromMin || entryMin > tToMin) return;
+        }
+        const enriched = { ...entry, date: dateKey, weekday };
+        anaRawEntries.push(enriched);
+
+        // Apply additional filters for display
+        if (anaSelectedDays.size > 0 && !anaSelectedDays.has(weekday)) return;
+        if (anaSelectedRoles.size > 0 && !anaSelectedRoles.has(entry.role)) return;
+        if (anaSelectedLocs.size > 0 && !anaSelectedLocs.has(entry.fromName) && !anaSelectedLocs.has(entry.toName)) return;
+        allEntries.push(enriched);
+        seenDays.add(dateKey);
+      });
     });
+    totalDays = seenDays.size;
 
     if (allEntries.length === 0) {
       statusEl.textContent = '';
@@ -1128,8 +1207,17 @@ async function loadAnalytics() {
       const pct = Math.round((item.count / maxCount) * 100);
       const rc = item.role === 'UA' ? 'ua' : 'aa';
       const rl = item.role === 'UA' ? 'UA/UÄ' : 'AA/AÄ';
-      html += `<div class="ana-bar-row"><div class="ana-bar-label">${rl}: ${item.from} → ${item.to}</div>
-        <div class="ana-bar-track"><div class="ana-bar-fill ${rc}" style="width:${pct}%"><span class="ana-bar-count">${item.count}×</span></div></div></div>`;
+      const detail = buildWeekdayDetail(
+        e => e.role === item.role && e.fromName === item.from && e.toName === item.to, rc
+      );
+      html += `<div class="ana-bar-wrap">
+        <div class="ana-bar-row" onclick="toggleBarDetail(this)">
+          <span class="ana-expand-arrow">▶</span>
+          <div class="ana-bar-label">${rl}: ${item.from} → ${item.to}</div>
+          <div class="ana-bar-track"><div class="ana-bar-fill ${rc}" style="width:${pct}%"><span class="ana-bar-count">${item.count}×</span></div></div>
+        </div>
+        <div class="ana-detail">${detail}</div>
+      </div>`;
     });
     html += '</div>';
 
@@ -1141,8 +1229,15 @@ async function loadAnalytics() {
     html += '<div class="ana-chart-group"><div class="ana-chart-title">Verschiebungen von Ort (Quelle)</div>';
     sortedFrom.forEach(([loc, count]) => {
       const pct = Math.round((count / maxFrom) * 100);
-      html += `<div class="ana-bar-row"><div class="ana-bar-label">${loc}</div>
-        <div class="ana-bar-track"><div class="ana-bar-fill ua" style="width:${pct}%"><span class="ana-bar-count">${count}×</span></div></div></div>`;
+      const detail = buildWeekdayDetail(e => e.fromName === loc, 'ua');
+      html += `<div class="ana-bar-wrap">
+        <div class="ana-bar-row" onclick="toggleBarDetail(this)">
+          <span class="ana-expand-arrow">▶</span>
+          <div class="ana-bar-label">${loc}</div>
+          <div class="ana-bar-track"><div class="ana-bar-fill ua" style="width:${pct}%"><span class="ana-bar-count">${count}×</span></div></div>
+        </div>
+        <div class="ana-detail">${detail}</div>
+      </div>`;
     });
     html += '</div>';
 
@@ -1154,8 +1249,15 @@ async function loadAnalytics() {
     html += '<div class="ana-chart-group"><div class="ana-chart-title">Verschiebungen nach Ort (Ziel)</div>';
     sortedTo.forEach(([loc, count]) => {
       const pct = Math.round((count / maxTo) * 100);
-      html += `<div class="ana-bar-row"><div class="ana-bar-label">${loc}</div>
-        <div class="ana-bar-track"><div class="ana-bar-fill aa" style="width:${pct}%"><span class="ana-bar-count">${count}×</span></div></div></div>`;
+      const detail = buildWeekdayDetail(e => e.toName === loc, 'aa');
+      html += `<div class="ana-bar-wrap">
+        <div class="ana-bar-row" onclick="toggleBarDetail(this)">
+          <span class="ana-expand-arrow">▶</span>
+          <div class="ana-bar-label">${loc}</div>
+          <div class="ana-bar-track"><div class="ana-bar-fill aa" style="width:${pct}%"><span class="ana-bar-count">${count}×</span></div></div>
+        </div>
+        <div class="ana-detail">${detail}</div>
+      </div>`;
     });
     html += '</div>';
 
