@@ -1359,7 +1359,7 @@ async function loadAnalytics() {
 
     const maxCount = Math.max(...moveItems.map(m => m.count), 1);
 
-    let html = '<div class="ana-chart-group"><div class="ana-chart-title">Häufigste Verschiebungen</div>';
+    html += '<div class="ana-chart-group"><div class="ana-chart-title">Häufigste Verschiebungen</div>';
     sortedGroups.forEach((group, gi) => {
       if (gi > 0) html += '<div style="height:.7rem;"></div>'; // gap between groups
       group.items.forEach(item => {
