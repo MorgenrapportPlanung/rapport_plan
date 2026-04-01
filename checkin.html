@@ -486,10 +486,11 @@
   <div class="card" id="card-loc">
     <div class="card-title">Schritt 3 — Ort</div>
     <div class="loc-grid" id="loc-grid"></div>
-  </div>
-  <div class="card" id="card-aa-areas" style="display:none;">
-    <div class="card-title">Schritt 4 — Bereich <span style="font-size:.85rem;color:var(--muted);">(Mehrfachauswahl möglich)</span></div>
-    <div class="loc-grid" id="aa-area-grid"></div>
+    <div id="aa-area-section" style="display:none;">
+      <div class="loc-divider" style="margin:.8rem 0;"></div>
+      <div style="font-size:.9rem;color:var(--muted);margin-bottom:.6rem;">Bereich <span style="font-size:.8rem;">(Mehrfachauswahl)</span></div>
+      <div class="loc-grid" id="aa-area-grid"></div>
+    </div>
   </div>
   <button id="submit-btn" onclick="submitCheckin()" disabled>Check-in</button>
   <div id="status-msg"></div>
@@ -865,8 +866,8 @@ function selectRole(role) {
   selectedAreas.clear();
   document.querySelectorAll('.role-btn').forEach(b => b.className = 'role-btn');
   document.querySelector(`[data-role="${role}"]`).classList.add(role==='UA'?'sel-ua':'sel-aa');
-  // Show/hide AA areas
-  document.getElementById('card-aa-areas').style.display = role === 'AA' ? '' : 'none';
+  // Show/hide AA areas section
+  document.getElementById('aa-area-section').style.display = role === 'AA' ? '' : 'none';
   document.querySelectorAll('#aa-area-grid .loc-btn').forEach(b => b.classList.remove('sel-aa'));
   if (selectedLoc !== null) paintLoc(selectedLoc);
   updateBtn();
@@ -1088,6 +1089,40 @@ function renderOverview() {
       </div>`;
     wrap.appendChild(col);
   });
+
+  // AA area columns
+  const areaBuckets = {};
+  AA_AREAS.forEach(a => { areaBuckets[a.name] = []; });
+  Object.entries(entries).forEach(([uid, e]) => {
+    if (e && e.areas && e.areas.length > 0) {
+      e.areas.forEach(areaName => {
+        if (areaBuckets[areaName]) {
+          areaBuckets[areaName].push({ name: e.name, role: e.role, isMe: uid === myId, uid });
+        }
+      });
+    }
+  });
+  // Only show AA area section if any entries have areas
+  const hasAnyAreas = Object.values(areaBuckets).some(b => b.length > 0);
+  if (hasAnyAreas || Object.values(entries).some(e => e && e.role === 'AA')) {
+    const divider = document.createElement('div');
+    divider.className = 'ov-col-divider';
+    wrap.appendChild(divider);
+    AA_AREAS.forEach(area => {
+      const members = areaBuckets[area.name];
+      const col = document.createElement('div');
+      col.className = 'ov-col';
+      col.innerHTML = `
+        <div class="ov-col-head">${area.name}<br><span class="ov-col-team"><a href="tel:${area.tel}" style="color:var(--muted);text-decoration:none;">${area.tel}</a></span></div>
+        <div class="ov-names">
+          ${members.length === 0
+            ? '<div class="ov-empty">—</div>'
+            : members.map(m=>`<div class="ov-name ${m.role.toLowerCase()}${m.isMe?' me':''}" title="${m.name}">${m.name}</div>`).join('')}
+        </div>`;
+      wrap.appendChild(col);
+    });
+  }
+
   // Init drag-drop if edit mode active
   if (editMode) initDragDrop();
 }
