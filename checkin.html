@@ -1213,8 +1213,8 @@ function toggleSnapshot(loc) {
     if (inC === 0 && outC === 0) return;
     dirHtml += `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;font-size:.7rem;">
       <div style="width:28px;text-align:right;color:var(--muted);">${DAY_LABELS_DE[d]}</div>
-      <span style="color:#f87171;">↑${inC}</span>
-      <span style="color:#a78bfa;">↓${outC}</span>
+      <span style="color:#f87171;">+${inC}</span>
+      <span style="color:#c084fc;">−${outC}</span>
       <span style="color:var(--muted);">netto: ${inC - outC > 0 ? '+' : ''}${inC - outC}</span>
     </div>`;
   });
@@ -1307,28 +1307,45 @@ async function loadAnalytics() {
     let html = '<div class="ana-snapshot">';
     html += '<div class="ana-snapshot-title">Planungsqualität pro Ort</div>';
     html += '<div class="ana-snapshot-legend">';
-    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(120,70%,45%,.4)"></div>Gut</div>';
-    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(60,70%,45%,.4)"></div>Auffällig</div>';
-    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(0,70%,45%,.4)"></div>Problematisch</div>';
-    html += '<div class="ana-snapshot-legend-item" style="margin-left:.5rem;">↑ = zu wenig geplant</div>';
-    html += '<div class="ana-snapshot-legend-item">↓ = zu viel geplant</div>';
+    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(0,70%,45%,.4)"></div>Unterplant</div>';
+    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(120,70%,45%,.4)"></div>Richtig geplant</div>';
+    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(50,70%,45%,.4)"></div>Überplant</div>';
+    html += '<div class="ana-snapshot-legend-item" style="margin-left:.5rem;">+ = Person hinzugefügt</div>';
+    html += '<div class="ana-snapshot-legend-item">− = Person entfernt</div>';
     html += '</div>';
     html += '<div class="ana-snapshot-grid">';
 
-    // Show all rooms that appear in data, plus any with 0 changes (greyed)
+    // Count per room: how many times someone was added (+) vs removed (-)
+    const locAdded = {}, locRemoved = {};
+    allEntries.forEach(e => {
+      locAdded[e.toName] = (locAdded[e.toName] || 0) + 1;
+      locRemoved[e.fromName] = (locRemoved[e.fromName] || 0) + 1;
+    });
+
     const allRooms = [...new Set([...ALL_LOC_NAMES, ...Object.keys(locChanges)])];
     allRooms.forEach(loc => {
-      const count = locChanges[loc] || 0;
-      const net = locNet[loc] || 0;
-      const ratio = count / maxLocChanges;
-      const hue = 120 - (ratio * 120); // 120=green → 0=red
-      const bg = count > 0 ? `hsla(${hue},70%,45%,.4)` : 'rgba(255,255,255,.05)';
-      const arrow = net > 0 ? '↑' : net < 0 ? '↓' : '—';
-      const arrowColor = net > 0 ? '#f87171' : net < 0 ? '#a78bfa' : 'var(--muted)';
+      const added = locAdded[loc] || 0;
+      const removed = locRemoved[loc] || 0;
+      const total = added + removed;
+      // Color: mostly added → red, mostly removed → yellow, balanced/none → green
+      let hue = 120; // green default
+      if (total > 0) {
+        const addRatio = added / total;    // 1 = all added, 0 = all removed
+        const removeRatio = removed / total;
+        if (addRatio > removeRatio) {
+          // More added than removed → red (0) to green (120)
+          // Scale: 50% added = green, 100% added = red
+          hue = Math.max(0, 120 - ((addRatio - 0.5) * 2) * 120);
+        } else if (removeRatio > addRatio) {
+          // More removed → yellow (50) to green (120)
+          hue = Math.max(50, 120 - ((removeRatio - 0.5) * 2) * 70);
+        }
+      }
+      const bg = total > 0 ? `hsla(${hue},70%,45%,.4)` : 'rgba(255,255,255,.05)';
       html += `<div class="ana-snapshot-block" style="background:${bg}" onclick="toggleSnapshot('${loc.replace(/'/g,"\\'")}')" data-loc="${loc}">
         <div class="ana-snapshot-block-name">${loc}</div>
         <div class="ana-snapshot-block-info">
-          ${count}× <span class="ana-snapshot-block-arrow" style="color:${arrowColor}">${arrow}</span>
+          <span style="color:#f87171;">+${added}</span> <span style="color:#c084fc;">−${removed}</span>
         </div>
       </div>`;
     });
