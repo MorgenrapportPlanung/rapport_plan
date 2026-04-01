@@ -193,6 +193,7 @@
       position: absolute; right: 1.2rem;
       width: 9px; height: 9px; border-radius: 50%;
       background: #374151; transition: background .5s;
+      cursor: pointer;
     }
     #conn-dot.ok  { background: rgba(34,197,94,.5); }
     #conn-dot.err { background: rgba(239,68,68,.5); }
@@ -268,6 +269,106 @@
       vertical-align: middle; margin-right: .4rem;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ANALYTICS OVERLAY */
+    #analytics-overlay {
+      display: none; position: fixed; inset: 0;
+      background: var(--bg); z-index: 600;
+      flex-direction: column; overflow: hidden;
+    }
+    #analytics-overlay.visible { display: flex; }
+    #analytics-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border);
+      background: var(--surface); flex-shrink: 0;
+    }
+    #analytics-header h2 { font-size: 1.2rem; font-weight: 600; }
+    #analytics-close {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 1.5rem; padding: .2rem .5rem; line-height: 1;
+    }
+    #analytics-close:hover { color: var(--text); }
+    #analytics-body {
+      flex: 1; overflow-y: auto; padding: 1.2rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .ana-section { margin-bottom: 1.5rem; }
+    .ana-section-title {
+      font-size: 1rem; font-weight: 600; color: var(--muted);
+      margin-bottom: .8rem;
+    }
+    .ana-date-row {
+      display: flex; gap: .8rem; align-items: center; flex-wrap: wrap;
+    }
+    .ana-input {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-family: var(--sf);
+      font-size: 1rem; padding: .6rem .8rem; outline: none;
+      color-scheme: dark;
+    }
+    .ana-input:focus { border-color: var(--ua); }
+    .ana-sep { color: var(--muted); font-size: .9rem; }
+    .ana-days { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .ana-day-btn {
+      padding: .5rem .8rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg);
+      color: var(--muted); font-family: var(--sf); font-size: .85rem;
+      cursor: pointer; transition: all .15s;
+    }
+    .ana-day-btn.active {
+      border-color: var(--ua); color: var(--ua); background: #0d1f38;
+    }
+    .ana-filter-btn {
+      padding: .45rem .7rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg);
+      color: var(--muted); font-family: var(--sf); font-size: .8rem;
+      cursor: pointer; transition: all .15s;
+    }
+    .ana-filter-btn.active {
+      border-color: var(--ua); color: var(--ua); background: #0d1f38;
+    }
+    .ana-filter-btn.active-aa {
+      border-color: var(--aa); color: var(--aa); background: #0f2a1e;
+    }
+    #ana-status {
+      font-size: .9rem; color: var(--muted); margin-bottom: 1rem;
+      min-height: 1.2em;
+    }
+    .ana-chart-group { margin-bottom: 1.5rem; }
+    .ana-chart-title {
+      font-size: .95rem; font-weight: 600; color: var(--text);
+      margin-bottom: .6rem; padding-bottom: .4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .ana-bar-row {
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: .5rem;
+    }
+    .ana-bar-label {
+      font-size: .8rem; color: var(--muted); min-width: 140px;
+      text-align: right; flex-shrink: 0;
+    }
+    .ana-bar-track {
+      flex: 1; height: 24px; background: var(--bg);
+      border-radius: 6px; overflow: hidden; position: relative;
+    }
+    .ana-bar-fill {
+      height: 100%; border-radius: 6px; transition: width .3s;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: .5rem; min-width: 28px;
+    }
+    .ana-bar-fill.ua { background: rgba(96,165,250,.3); }
+    .ana-bar-fill.aa { background: rgba(52,211,153,.3); }
+    .ana-bar-count {
+      font-size: .75rem; font-weight: 600; color: var(--text);
+    }
+    .ana-empty {
+      color: var(--muted); font-size: .95rem; text-align: center;
+      padding: 2rem 0;
+    }
+    @media (max-width: 600px) {
+      .ana-bar-label { min-width: 100px; font-size: .7rem; }
+    }
   </style>
 </head>
 <body>
@@ -324,7 +425,60 @@
     </svg>
     <span>Zurücksetzen</span>
   </button>
-  <div id="conn-dot"></div>
+  <div id="conn-dot" onclick="openAnalyticsPw()"></div>
+</div>
+
+<!-- ANALYTICS PASSWORD MODAL -->
+<div id="ana-pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:550;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:16px;padding:2rem;width:90%;max-width:300px;display:flex;flex-direction:column;gap:1rem;">
+    <h3 style="font-size:1.1rem;font-weight:600;color:var(--text);">Analyse</h3>
+    <input type="password" id="ana-pw-field" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sf);font-size:1.2rem;padding:.7rem 1rem;outline:none;" autocomplete="off" placeholder="Passwort">
+    <div id="ana-pw-error" style="font-size:.9rem;color:#f87171;min-height:1.2em;"></div>
+    <div style="display:flex;gap:.7rem;">
+      <button class="pw-btn" onclick="closeAnalyticsPw()" style="flex:1;padding:.8rem;border-radius:10px;font-family:var(--sf);font-size:1rem;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);">Abbrechen</button>
+      <button class="pw-btn" onclick="confirmAnalyticsPw()" style="flex:1;padding:.8rem;border-radius:10px;font-family:var(--sf);font-size:1rem;cursor:pointer;border:none;background:var(--ua);color:#0f1117;font-weight:600;">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYTICS OVERLAY -->
+<div id="analytics-overlay">
+  <div id="analytics-header">
+    <h2>Analyse</h2>
+    <button id="analytics-close" onclick="closeAnalytics()">&times;</button>
+  </div>
+  <div id="analytics-body">
+    <div class="ana-section">
+      <div class="ana-section-title">Zeitraum</div>
+      <div class="ana-date-row">
+        <input type="date" id="ana-from" class="ana-input">
+        <span class="ana-sep">bis</span>
+        <input type="date" id="ana-to" class="ana-input">
+      </div>
+    </div>
+    <div class="ana-section">
+      <div class="ana-section-title">Uhrzeit</div>
+      <div class="ana-date-row">
+        <input type="time" id="ana-time-from" class="ana-input" value="07:15">
+        <span class="ana-sep">bis</span>
+        <input type="time" id="ana-time-to" class="ana-input" value="08:15">
+      </div>
+    </div>
+    <div class="ana-section">
+      <div class="ana-section-title">Wochentag</div>
+      <div class="ana-days" id="ana-days"></div>
+    </div>
+    <div class="ana-section">
+      <div class="ana-section-title">Funktion</div>
+      <div class="ana-days" id="ana-roles"></div>
+    </div>
+    <div class="ana-section">
+      <div class="ana-section-title">Ort</div>
+      <div class="ana-days" id="ana-locs"></div>
+    </div>
+    <div id="ana-status"></div>
+    <div id="ana-charts"></div>
+  </div>
 </div>
 
 <!-- PASSWORD MODAL -->
@@ -344,6 +498,8 @@
 const FIREBASE_URL = 'https://rapport-plan-default-rtdb.europe-west1.firebasedatabase.app';
 const RESET_HOUR   = 0;
 const RESET_MINUTE = 0;
+const ALL_LOC_NAMES = ['Saal 11','Saal 13','Saal 14','Saal 15','Saal 16','Saal 3/19/20',
+  'SS Fuss','SS WS','SS OE','SS Knie','SS Hüfte','SS Fuss (GiZi)'];
 // SS names change by weekday (0=Sun,1=Mon,...,5=Fri,6=Sat)
 const SS_NAMES = {
   0: ['SS Fuss',  'SS WS'],         // Sonntag (fallback Mo)
@@ -384,6 +540,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') confirmPwAndReset();
     if (e.key === 'Escape') closePwModal();
   });
+  document.getElementById('ana-pw-field').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmAnalyticsPw();
+    if (e.key === 'Escape') closeAnalyticsPw();
+  });
+  buildAnalyticsFilters();
   startClock();
   startRealtimeListener();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -643,6 +804,7 @@ function toggleEditMode() {
 async function moveEntry(uid, newLoc) {
   const entry = currentData?.entries?.[uid];
   if (!entry || entry.loc === newLoc) return;
+  const oldLoc = entry.loc;
   try {
     const updated = { ...entry, loc: newLoc };
     const res = await fetch(`${FIREBASE_URL}/checkin/entries/${uid}.json`, {
@@ -651,6 +813,7 @@ async function moveEntry(uid, newLoc) {
     if (!res.ok) throw new Error(await res.text());
     currentData.entries[uid] = updated;
     renderOverview();
+    logChange(entry.role, oldLoc, newLoc);
   } catch(err) { console.error('move failed:', err); alert('Fehler beim Verschieben'); }
 }
 
@@ -760,6 +923,247 @@ function renderOverview() {
   });
   // Init drag-drop if edit mode active
   if (editMode) initDragDrop();
+}
+
+// ── Changelog (track all moves to Firebase) ───────────
+function getLocName(locIndex) {
+  const d = new Date();
+  const day = d.getDay();
+  const ss = SS_NAMES[day] || SS_NAMES[1];
+  const locs = ['Saal 11','Saal 13','Saal 14','Saal 15','Saal 16','Saal 3/19/20', ss[0], ss[1]];
+  return locs[locIndex] || `Ort ${locIndex}`;
+}
+
+async function logChange(role, fromLoc, toLoc) {
+  const now = new Date();
+  const hhmm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  const entry = {
+    role,
+    fromLoc,
+    toLoc,
+    fromName: getLocName(fromLoc),
+    toName: getLocName(toLoc),
+    time: hhmm,
+    ts: Date.now()
+  };
+  try {
+    await fetch(`${FIREBASE_URL}/changelog/${todayStr()}.json`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(entry),
+    });
+  } catch(e) { console.error('logChange:', e); }
+}
+
+// ── Analytics password ─────────────────────────────────
+function openAnalyticsPw() {
+  document.getElementById('ana-pw-field').value = '';
+  document.getElementById('ana-pw-error').textContent = '';
+  document.getElementById('ana-pw-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('ana-pw-field').focus(), 100);
+}
+function closeAnalyticsPw() {
+  document.getElementById('ana-pw-overlay').style.display = 'none';
+}
+function confirmAnalyticsPw() {
+  if (document.getElementById('ana-pw-field').value !== '1234') {
+    document.getElementById('ana-pw-error').textContent = 'Falsches Passwort';
+    document.getElementById('ana-pw-field').value = '';
+    document.getElementById('ana-pw-field').focus();
+    return;
+  }
+  closeAnalyticsPw();
+  openAnalytics();
+}
+
+// ── Analytics overlay ──────────────────────────────────
+let anaSelectedDays = new Set();
+let anaSelectedRoles = new Set();
+let anaSelectedLocs = new Set();
+
+function buildAnalyticsFilters() {
+  // Day buttons
+  const daysWrap = document.getElementById('ana-days');
+  const dayLabels = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+  const dayNums = [1,2,3,4,5,6,0];
+  dayLabels.forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ana-day-btn';
+    btn.textContent = label;
+    btn.dataset.day = dayNums[i];
+    btn.onclick = () => {
+      btn.classList.toggle('active');
+      const d = parseInt(btn.dataset.day);
+      if (anaSelectedDays.has(d)) anaSelectedDays.delete(d); else anaSelectedDays.add(d);
+      loadAnalytics();
+    };
+    daysWrap.appendChild(btn);
+  });
+
+  // Role buttons
+  const rolesWrap = document.getElementById('ana-roles');
+  ['UA','AA'].forEach(role => {
+    const btn = document.createElement('button');
+    btn.className = 'ana-filter-btn';
+    btn.textContent = role === 'UA' ? 'UA / UÄ' : 'AA / AÄ';
+    btn.dataset.role = role;
+    btn.onclick = () => {
+      btn.classList.toggle(role === 'UA' ? 'active' : 'active-aa');
+      if (anaSelectedRoles.has(role)) anaSelectedRoles.delete(role); else anaSelectedRoles.add(role);
+      loadAnalytics();
+    };
+    rolesWrap.appendChild(btn);
+  });
+
+  // Location buttons
+  const locsWrap = document.getElementById('ana-locs');
+  ALL_LOC_NAMES.forEach(loc => {
+    const btn = document.createElement('button');
+    btn.className = 'ana-filter-btn';
+    btn.textContent = loc;
+    btn.dataset.loc = loc;
+    btn.onclick = () => {
+      btn.classList.toggle('active');
+      if (anaSelectedLocs.has(loc)) anaSelectedLocs.delete(loc); else anaSelectedLocs.add(loc);
+      loadAnalytics();
+    };
+    locsWrap.appendChild(btn);
+  });
+}
+
+function openAnalytics() {
+  const to = new Date();
+  const from = new Date();
+  from.setMonth(from.getMonth() - 1);
+  document.getElementById('ana-from').value = from.toISOString().slice(0,10);
+  document.getElementById('ana-to').value = to.toISOString().slice(0,10);
+  document.getElementById('ana-from').onchange = loadAnalytics;
+  document.getElementById('ana-to').onchange = loadAnalytics;
+  document.getElementById('ana-time-from').onchange = loadAnalytics;
+  document.getElementById('ana-time-to').onchange = loadAnalytics;
+  document.getElementById('analytics-overlay').classList.add('visible');
+  loadAnalytics();
+}
+
+function closeAnalytics() {
+  document.getElementById('analytics-overlay').classList.remove('visible');
+}
+
+function timeToMinutes(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
+async function loadAnalytics() {
+  const fromStr = document.getElementById('ana-from').value;
+  const toStr = document.getElementById('ana-to').value;
+  const timeFrom = document.getElementById('ana-time-from').value;
+  const timeTo = document.getElementById('ana-time-to').value;
+  if (!fromStr || !toStr) return;
+
+  const statusEl = document.getElementById('ana-status');
+  const chartsEl = document.getElementById('ana-charts');
+  statusEl.textContent = 'Lade Daten…';
+  chartsEl.innerHTML = '';
+
+  try {
+    const url = `${FIREBASE_URL}/changelog.json?orderBy="$key"&startAt="${fromStr}"&endAt="${toStr}\uf8ff"&t=${Date.now()}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+
+    if (!data) {
+      statusEl.textContent = '';
+      chartsEl.innerHTML = '<div class="ana-empty">Keine Daten im gewählten Zeitraum.</div>';
+      return;
+    }
+
+    const tFromMin = timeFrom ? timeToMinutes(timeFrom) : 0;
+    const tToMin = timeTo ? timeToMinutes(timeTo) : 1440;
+
+    const allEntries = [];
+    let totalDays = 0;
+    Object.entries(data).forEach(([dateKey, dayEntries]) => {
+      const d = new Date(dateKey + 'T12:00:00');
+      const weekday = d.getDay();
+      if (anaSelectedDays.size > 0 && !anaSelectedDays.has(weekday)) return;
+      totalDays++;
+      if (dayEntries) {
+        Object.values(dayEntries).forEach(entry => {
+          // Time filter
+          if (entry.time) {
+            const entryMin = timeToMinutes(entry.time);
+            if (entryMin < tFromMin || entryMin > tToMin) return;
+          }
+          // Role filter
+          if (anaSelectedRoles.size > 0 && !anaSelectedRoles.has(entry.role)) return;
+          // Location filter (match fromName OR toName)
+          if (anaSelectedLocs.size > 0 && !anaSelectedLocs.has(entry.fromName) && !anaSelectedLocs.has(entry.toName)) return;
+          allEntries.push({ ...entry, date: dateKey, weekday });
+        });
+      }
+    });
+
+    if (allEntries.length === 0) {
+      statusEl.textContent = '';
+      chartsEl.innerHTML = '<div class="ana-empty">Keine Änderungen für diese Filter.</div>';
+      return;
+    }
+
+    statusEl.textContent = `${allEntries.length} Änderungen an ${totalDays} Tagen`;
+
+    // Chart 1: Most frequent moves (role + from → to)
+    const moveCounts = {};
+    allEntries.forEach(e => {
+      const key = `${e.role}|${e.fromName}|${e.toName}`;
+      moveCounts[key] = (moveCounts[key] || 0) + 1;
+    });
+    const sorted = Object.entries(moveCounts)
+      .map(([key, count]) => { const [role, from, to] = key.split('|'); return { role, from, to, count }; })
+      .sort((a, b) => b.count - a.count);
+    const maxCount = sorted[0]?.count || 1;
+
+    let html = '<div class="ana-chart-group"><div class="ana-chart-title">Häufigste Verschiebungen</div>';
+    sorted.forEach(item => {
+      const pct = Math.round((item.count / maxCount) * 100);
+      const rc = item.role === 'UA' ? 'ua' : 'aa';
+      const rl = item.role === 'UA' ? 'UA/UÄ' : 'AA/AÄ';
+      html += `<div class="ana-bar-row"><div class="ana-bar-label">${rl}: ${item.from} → ${item.to}</div>
+        <div class="ana-bar-track"><div class="ana-bar-fill ${rc}" style="width:${pct}%"><span class="ana-bar-count">${item.count}×</span></div></div></div>`;
+    });
+    html += '</div>';
+
+    // Chart 2: Changes FROM location
+    const fromCounts = {};
+    allEntries.forEach(e => { fromCounts[e.fromName] = (fromCounts[e.fromName] || 0) + 1; });
+    const sortedFrom = Object.entries(fromCounts).sort((a,b) => b[1] - a[1]);
+    const maxFrom = sortedFrom[0]?.[1] || 1;
+    html += '<div class="ana-chart-group"><div class="ana-chart-title">Verschiebungen von Ort (Quelle)</div>';
+    sortedFrom.forEach(([loc, count]) => {
+      const pct = Math.round((count / maxFrom) * 100);
+      html += `<div class="ana-bar-row"><div class="ana-bar-label">${loc}</div>
+        <div class="ana-bar-track"><div class="ana-bar-fill ua" style="width:${pct}%"><span class="ana-bar-count">${count}×</span></div></div></div>`;
+    });
+    html += '</div>';
+
+    // Chart 3: Changes TO location
+    const toCounts = {};
+    allEntries.forEach(e => { toCounts[e.toName] = (toCounts[e.toName] || 0) + 1; });
+    const sortedTo = Object.entries(toCounts).sort((a,b) => b[1] - a[1]);
+    const maxTo = sortedTo[0]?.[1] || 1;
+    html += '<div class="ana-chart-group"><div class="ana-chart-title">Verschiebungen nach Ort (Ziel)</div>';
+    sortedTo.forEach(([loc, count]) => {
+      const pct = Math.round((count / maxTo) * 100);
+      html += `<div class="ana-bar-row"><div class="ana-bar-label">${loc}</div>
+        <div class="ana-bar-track"><div class="ana-bar-fill aa" style="width:${pct}%"><span class="ana-bar-count">${count}×</span></div></div></div>`;
+    });
+    html += '</div>';
+
+    chartsEl.innerHTML = html;
+  } catch(e) {
+    console.error('loadAnalytics:', e);
+    statusEl.textContent = 'Fehler beim Laden der Daten';
+  }
 }
 </script>
 </body>
