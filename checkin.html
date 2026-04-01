@@ -139,6 +139,7 @@
       padding-bottom: .6rem; margin-bottom: .6rem;
       border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
+    .ov-col-team { font-size: .85rem; font-weight: 400; color: var(--muted); }
     .ov-names { flex: 1; }
     .ov-name {
       font-size: 1.2rem; font-weight: 500; padding: .5rem .5rem;
@@ -176,8 +177,7 @@
     }
     #edit-toggle:hover { color: var(--text); }
     #edit-toggle.on { color: #f97316; }
-    #edit-toggle.on svg { stroke: #f97316; }
-    #edit-toggle svg { width: 16px; height: 16px; flex-shrink: 0; transition: stroke .2s; }
+    #edit-toggle svg { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; }
 
     #refresh-btn {
       display: flex; align-items: center; gap: .5rem;
@@ -600,12 +600,34 @@ const SS_NAMES = {
   5: ['SS Knie',  'SS Hüfte'],      // Freitag
   6: ['SS Fuss',  'SS WS'],         // Samstag (fallback Mo)
 };
+// Team/specialty per Saal by weekday (indices 0-5 = Saal 11,13,14,15,16,Überlauf)
+const TEAM_NAMES = {
+  0: ['Hüfte','Knie','Slot 1','Hüfte','OE',''],              // So (fallback Mo)
+  1: ['Hüfte','Knie','Slot 1','Hüfte','OE',''],              // Mo
+  2: ['Slot 2','Hüfte','Slot 1','WS','Hüfte',''],            // Di
+  3: ['WS','WS','Slot 1','Knie','Fuss',''],                   // Mi
+  4: ['Slot 2','OE','Slot 1','Hüfte','Knie',''],             // Do
+  5: ['Slot 2','Fuss','Tumor/Slot 1','OE','WS',''],          // Fr
+  6: ['Hüfte','Knie','Slot 1','Hüfte','OE',''],              // Sa (fallback Mo)
+};
+const ALL_TEAM_NAMES = ['Hüfte','Knie','OE','WS','Fuss','Slot 1','Slot 2','Tumor/Slot 1','Fuss (GiZi)'];
+
 function getLocations() {
   const day = new Date().getDay();
   const ss = SS_NAMES[day] || SS_NAMES[1];
   return ['Saal 11','Saal 13','Saal 14','Saal 15','Saal 16','Saal 3/19/20', ss[0], ss[1]];
 }
+function getTeams(day) {
+  if (day === undefined) day = new Date().getDay();
+  const t = TEAM_NAMES[day] || TEAM_NAMES[1];
+  return [t[0], t[1], t[2], t[3], t[4], t[5], '', '']; // SS rooms have no team subtitle
+}
+function getTeamForLoc(locIndex, weekday) {
+  const teams = getTeams(weekday);
+  return teams[locIndex] || '';
+}
 const LOCATIONS = getLocations();
+const TEAMS = getTeams();
 const DIVIDER_AFTER = 4;
 
 // Unique browser ID (no hyphens = valid Firebase key)
@@ -790,7 +812,9 @@ function buildLocGrid() {
       grid.appendChild(div);
     }
     const btn = document.createElement('button');
-    btn.className = 'loc-btn'; btn.id = `lb-${i}`; btn.textContent = name;
+    btn.className = 'loc-btn'; btn.id = `lb-${i}`;
+    const team = TEAMS[i];
+    btn.innerHTML = team ? `${name}<br><span style="font-size:.85rem;color:var(--muted);font-weight:400;">${team}</span>` : name;
     if (i === DIVIDER_AFTER+1 || i === DIVIDER_AFTER+2) btn.classList.add('after-divider');
     btn.onclick = () => selectLoc(i);
     grid.appendChild(btn);
@@ -1003,7 +1027,7 @@ function renderOverview() {
     col.className = 'ov-col';
     col.dataset.loc = i;
     col.innerHTML = `
-      <div class="ov-col-head">${locName}</div>
+      <div class="ov-col-head">${locName}${TEAMS[i] ? '<br><span class="ov-col-team">' + TEAMS[i] + '</span>' : ''}</div>
       <div class="ov-names">
         ${members.length === 0
           ? '<div class="ov-empty">—</div>'
@@ -1033,6 +1057,8 @@ async function logChange(role, fromLoc, toLoc) {
     toLoc,
     fromName: getLocName(fromLoc),
     toName: getLocName(toLoc),
+    fromTeam: getTeamForLoc(fromLoc, now.getDay()),
+    toTeam: getTeamForLoc(toLoc, now.getDay()),
     time: hhmm,
     ts: Date.now()
   };
@@ -1317,9 +1343,16 @@ async function loadAnalytics() {
 
     // Count per room: how many times someone was added (+) vs removed (-)
     const locAdded = {}, locRemoved = {};
+    // Collect teams seen per room from changelog entries
+    const locTeamsSeen = {};
     allEntries.forEach(e => {
       locAdded[e.toName] = (locAdded[e.toName] || 0) + 1;
       locRemoved[e.fromName] = (locRemoved[e.fromName] || 0) + 1;
+      // Track teams from changelog (if available) or resolve from weekday
+      const ft = e.fromTeam || getTeamForLoc(e.fromLoc, e.weekday);
+      const tt = e.toTeam || getTeamForLoc(e.toLoc, e.weekday);
+      if (ft) { if (!locTeamsSeen[e.fromName]) locTeamsSeen[e.fromName] = {}; locTeamsSeen[e.fromName][ft] = (locTeamsSeen[e.fromName][ft]||0)+1; }
+      if (tt) { if (!locTeamsSeen[e.toName]) locTeamsSeen[e.toName] = {}; locTeamsSeen[e.toName][tt] = (locTeamsSeen[e.toName][tt]||0)+1; }
     });
 
     const allRooms = [...new Set([...ALL_LOC_NAMES, ...Object.keys(locChanges)])];
@@ -1330,20 +1363,22 @@ async function loadAnalytics() {
       // Color: mostly added → red, mostly removed → yellow, balanced/none → green
       let hue = 120; // green default
       if (total > 0) {
-        const addRatio = added / total;    // 1 = all added, 0 = all removed
+        const addRatio = added / total;
         const removeRatio = removed / total;
         if (addRatio > removeRatio) {
-          // More added than removed → red (0) to green (120)
-          // Scale: 50% added = green, 100% added = red
           hue = Math.max(0, 120 - ((addRatio - 0.5) * 2) * 120);
         } else if (removeRatio > addRatio) {
-          // More removed → yellow (50) to green (120)
           hue = Math.max(50, 120 - ((removeRatio - 0.5) * 2) * 70);
         }
       }
       const bg = total > 0 ? `hsla(${hue},70%,45%,.4)` : 'rgba(255,255,255,.05)';
+      // Show teams that used this room (sorted by frequency)
+      const teamsObj = locTeamsSeen[loc] || {};
+      const teamsList = Object.entries(teamsObj).sort((a,b) => b[1]-a[1]).map(([t]) => t);
+      const teamLabel = teamsList.length > 0 ? teamsList.join(', ') : '';
       html += `<div class="ana-snapshot-block" style="background:${bg}" onclick="toggleSnapshot('${loc.replace(/'/g,"\\'")}')" data-loc="${loc}">
         <div class="ana-snapshot-block-name">${loc}</div>
+        ${teamLabel ? '<div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:.15rem;">' + teamLabel + '</div>' : ''}
         <div class="ana-snapshot-block-info">
           <span style="color:#f87171;">+${added}</span> <span style="color:#c084fc;">−${removed}</span>
         </div>
@@ -1352,6 +1387,21 @@ async function loadAnalytics() {
     html += '</div>';
     html += '<div class="ana-snapshot-detail" id="ana-snapshot-detail"></div>';
     html += '</div>';
+
+    // Helper: find most common team for a room from entries
+    function resolveTeam(locName, entries) {
+      const tc = {};
+      entries.forEach(e => {
+        if (e.fromName === locName) { const t = e.fromTeam || getTeamForLoc(e.fromLoc, e.weekday); if (t) tc[t] = (tc[t]||0)+1; }
+        if (e.toName === locName) { const t = e.toTeam || getTeamForLoc(e.toLoc, e.weekday); if (t) tc[t] = (tc[t]||0)+1; }
+      });
+      const top = Object.entries(tc).sort((a,b) => b[1]-a[1]);
+      return top.length > 0 ? top.map(([t]) => t).join('/') : '';
+    }
+    function locLabel(name) {
+      const t = resolveTeam(name, allEntries);
+      return t ? `${name} (${t})` : name;
+    }
 
     // Chart 1: Most frequent moves — grouped by from→to pair
     const moveCounts = {};
@@ -1389,7 +1439,7 @@ async function loadAnalytics() {
         html += `<div class="ana-bar-wrap">
           <div class="ana-bar-row" onclick="toggleBarDetail(this)">
             <span class="ana-expand-arrow">▶</span>
-            <div class="ana-bar-label">${rl}: ${item.from} → ${item.to}</div>
+            <div class="ana-bar-label">${rl}: ${locLabel(item.from)} → ${locLabel(item.to)}</div>
             <div class="ana-bar-track"><div class="ana-bar-fill ${rc}" style="width:${pct}%"><span class="ana-bar-count">${item.count}×</span></div></div>
           </div>
           <div class="ana-detail">${detail}</div>
@@ -1410,7 +1460,7 @@ async function loadAnalytics() {
       html += `<div class="ana-bar-wrap">
         <div class="ana-bar-row" onclick="toggleBarDetail(this)">
           <span class="ana-expand-arrow">▶</span>
-          <div class="ana-bar-label">${loc}</div>
+          <div class="ana-bar-label">${locLabel(loc)}</div>
           <div class="ana-bar-track"><div class="ana-bar-fill ua" style="width:${pct}%"><span class="ana-bar-count">${count}×</span></div></div>
         </div>
         <div class="ana-detail">${detail}</div>
@@ -1430,7 +1480,7 @@ async function loadAnalytics() {
       html += `<div class="ana-bar-wrap">
         <div class="ana-bar-row" onclick="toggleBarDetail(this)">
           <span class="ana-expand-arrow">▶</span>
-          <div class="ana-bar-label">${loc}</div>
+          <div class="ana-bar-label">${locLabel(loc)}</div>
           <div class="ana-bar-track"><div class="ana-bar-fill aa" style="width:${pct}%"><span class="ana-bar-count">${count}×</span></div></div>
         </div>
         <div class="ana-detail">${detail}</div>
