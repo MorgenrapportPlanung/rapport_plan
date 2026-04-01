@@ -487,6 +487,10 @@
     <div class="card-title">Schritt 3 — Ort</div>
     <div class="loc-grid" id="loc-grid"></div>
   </div>
+  <div class="card" id="card-aa-areas" style="display:none;">
+    <div class="card-title">Schritt 4 — Bereich <span style="font-size:.85rem;color:var(--muted);">(Mehrfachauswahl möglich)</span></div>
+    <div class="loc-grid" id="aa-area-grid"></div>
+  </div>
   <button id="submit-btn" onclick="submitCheckin()" disabled>Check-in</button>
   <div id="status-msg"></div>
 </div>
@@ -612,6 +616,16 @@ const TEAM_NAMES = {
 };
 const ALL_TEAM_NAMES = ['Hüfte','Knie','OE','WS','Fuss','Slot 1','Slot 2','Tumor/Slot 1','Fuss (GiZi)'];
 
+// AA-only areas (multi-select)
+const AA_AREAS = [
+  { name: 'Hüfte',  tel: '43932' },
+  { name: 'Fuss',   tel: '43935' },
+  { name: 'WS',     tel: '43931' },
+  { name: 'Knie',   tel: '43934' },
+  { name: 'OE',     tel: '43933' },
+  { name: 'NF Tag', tel: '1816322' },
+];
+
 function getLocations() {
   const day = new Date().getDay();
   const ss = SS_NAMES[day] || SS_NAMES[1];
@@ -639,12 +653,14 @@ if (!myId) {
 
 let selectedRole = null;
 let selectedLoc  = null;
+let selectedAreas = new Set(); // AA-only multi-select areas
 let currentData  = null;
 let hasCheckedIn = false;
 
 // ── Boot ───────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   buildLocGrid();
+  buildAAAreaGrid();
   const saved = localStorage.getItem('checkin_name');
   if (saved) document.getElementById('name-input').value = saved;
   document.getElementById('name-input').addEventListener('input', updateBtn);
@@ -780,7 +796,7 @@ async function confirmPwAndReset() {
     const btn = document.getElementById('submit-btn');
     btn.classList.remove('done'); btn.disabled = true;
     document.getElementById('status-msg').textContent = '';
-    selectedRole = null; selectedLoc = null;
+    selectedRole = null; selectedLoc = null; selectedAreas.clear();
     document.querySelectorAll('.role-btn').forEach(b => b.className = 'role-btn');
     document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('sel-ua','sel-aa'));
     updateBtn();
@@ -821,10 +837,37 @@ function buildLocGrid() {
   });
 }
 
+function buildAAAreaGrid() {
+  const grid = document.getElementById('aa-area-grid');
+  AA_AREAS.forEach((area, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'loc-btn';
+    btn.id = `aa-${i}`;
+    btn.innerHTML = `<a href="tel:${area.tel}" onclick="event.stopPropagation();" style="text-decoration:none;color:inherit;">${area.name}</a><br><span style="font-size:.75rem;color:var(--muted);font-weight:400;">${area.tel}</span>`;
+    btn.onclick = () => toggleArea(i);
+    grid.appendChild(btn);
+  });
+}
+
+function toggleArea(idx) {
+  if (selectedAreas.has(idx)) selectedAreas.delete(idx);
+  else selectedAreas.add(idx);
+  // Update button styles
+  document.querySelectorAll('#aa-area-grid .loc-btn').forEach((b, i) => {
+    b.classList.remove('sel-aa');
+    if (selectedAreas.has(i)) b.classList.add('sel-aa');
+  });
+  updateBtn();
+}
+
 function selectRole(role) {
   selectedRole = role;
+  selectedAreas.clear();
   document.querySelectorAll('.role-btn').forEach(b => b.className = 'role-btn');
   document.querySelector(`[data-role="${role}"]`).classList.add(role==='UA'?'sel-ua':'sel-aa');
+  // Show/hide AA areas
+  document.getElementById('card-aa-areas').style.display = role === 'AA' ? '' : 'none';
+  document.querySelectorAll('#aa-area-grid .loc-btn').forEach(b => b.classList.remove('sel-aa'));
   if (selectedLoc !== null) paintLoc(selectedLoc);
   updateBtn();
 }
@@ -850,9 +893,14 @@ function updateBtn() {
   btn.classList.toggle('ready', ok);
   if (ok) btn.classList.toggle('aa', selectedRole==='AA');
   else btn.classList.remove('aa');
-  btn.textContent = ok
-    ? `Check-in: ${selectedRole==='UA'?'UA/UÄ':'AA/AÄ'} — ${LOCATIONS[selectedLoc]}`
-    : 'Check-in';
+  if (ok) {
+    const roleLabel = selectedRole==='UA' ? 'UA/UÄ' : 'AA/AÄ';
+    const areaNames = [...selectedAreas].map(i => AA_AREAS[i].name);
+    const areaStr = areaNames.length > 0 ? ' + ' + areaNames.join(', ') : '';
+    btn.textContent = `Check-in: ${roleLabel} — ${LOCATIONS[selectedLoc]}${areaStr}`;
+  } else {
+    btn.textContent = 'Check-in';
+  }
 }
 
 // ── Submit ─────────────────────────────────────────────
@@ -867,7 +915,10 @@ async function submitCheckin() {
   localStorage.setItem('checkin_name', name);
 
   try {
-    const entry = { name, role: selectedRole, loc: selectedLoc, ts: Date.now() };
+    const areas = selectedRole === 'AA' && selectedAreas.size > 0
+      ? [...selectedAreas].map(i => AA_AREAS[i].name)
+      : [];
+    const entry = { name, role: selectedRole, loc: selectedLoc, areas, ts: Date.now() };
 
     // Write only this user's entry — no race condition
     const res = await fetch(`${FIREBASE_URL}/checkin/entries/${myId}.json`, {
@@ -1013,8 +1064,10 @@ function renderOverview() {
   const buckets = LOCATIONS.map(()=>[]);
   const entries = currentData?.entries || {};
   Object.entries(entries).forEach(([uid, e]) => {
-    if (e && e.loc >= 0 && e.loc < LOCATIONS.length)
-      buckets[e.loc].push({ name: e.name, role: e.role, isMe: uid === myId, uid });
+    if (e && e.loc >= 0 && e.loc < LOCATIONS.length) {
+      const areaTag = e.areas && e.areas.length > 0 ? ' (' + e.areas.join(', ') + ')' : '';
+      buckets[e.loc].push({ name: e.name + areaTag, role: e.role, isMe: uid === myId, uid });
+    }
   });
   LOCATIONS.forEach((locName, i) => {
     if (i === DIVIDER_AFTER + 1) {
