@@ -488,7 +488,6 @@
     <div class="loc-grid" id="loc-grid"></div>
     <div id="aa-area-section" style="display:none;">
       <div class="loc-divider" style="margin:.8rem 0;"></div>
-      <div style="font-size:.9rem;color:var(--muted);margin-bottom:.6rem;">Bereich <span style="font-size:.8rem;">(Mehrfachauswahl)</span></div>
       <div class="loc-grid" id="aa-area-grid"></div>
     </div>
   </div>
@@ -897,8 +896,8 @@ function updateBtn() {
   if (ok) {
     const roleLabel = selectedRole==='UA' ? 'UA/UÄ' : 'AA/AÄ';
     const areaNames = [...selectedAreas].map(i => AA_AREAS[i].name);
-    const areaStr = areaNames.length > 0 ? ' + ' + areaNames.join(', ') : '';
-    btn.textContent = `Check-in: ${roleLabel} — ${LOCATIONS[selectedLoc]}${areaStr}`;
+    const parts = [LOCATIONS[selectedLoc], ...areaNames].join(', ');
+    btn.textContent = `Check-in: ${roleLabel} — ${parts}`;
   } else {
     btn.textContent = 'Check-in';
   }
@@ -1063,13 +1062,22 @@ function renderOverview() {
   const wrap = document.getElementById('ov-cols');
   wrap.innerHTML = '';
   const buckets = LOCATIONS.map(()=>[]);
+  const areaBuckets = AA_AREAS.map(()=>[]);
   const entries = currentData?.entries || {};
   Object.entries(entries).forEach(([uid, e]) => {
     if (e && e.loc >= 0 && e.loc < LOCATIONS.length) {
-      const areaTag = e.areas && e.areas.length > 0 ? ' (' + e.areas.join(', ') + ')' : '';
-      buckets[e.loc].push({ name: e.name + areaTag, role: e.role, isMe: uid === myId, uid });
+      buckets[e.loc].push({ name: e.name, role: e.role, isMe: uid === myId, uid });
+    }
+    // AA areas — name appears in each selected area
+    if (e && e.areas && e.areas.length > 0) {
+      e.areas.forEach(areaName => {
+        const idx = AA_AREAS.findIndex(a => a.name === areaName);
+        if (idx >= 0) areaBuckets[idx].push({ name: e.name, role: e.role, isMe: uid === myId, uid });
+      });
     }
   });
+
+  // Main location columns
   LOCATIONS.forEach((locName, i) => {
     if (i === DIVIDER_AFTER + 1) {
       const div = document.createElement('div');
@@ -1090,38 +1098,23 @@ function renderOverview() {
     wrap.appendChild(col);
   });
 
-  // AA area columns
-  const areaBuckets = {};
-  AA_AREAS.forEach(a => { areaBuckets[a.name] = []; });
-  Object.entries(entries).forEach(([uid, e]) => {
-    if (e && e.areas && e.areas.length > 0) {
-      e.areas.forEach(areaName => {
-        if (areaBuckets[areaName]) {
-          areaBuckets[areaName].push({ name: e.name, role: e.role, isMe: uid === myId, uid });
-        }
-      });
-    }
+  // AA area columns — always shown
+  const divider = document.createElement('div');
+  divider.className = 'ov-col-divider';
+  wrap.appendChild(divider);
+  AA_AREAS.forEach((area, i) => {
+    const members = areaBuckets[i];
+    const col = document.createElement('div');
+    col.className = 'ov-col';
+    col.innerHTML = `
+      <div class="ov-col-head">${area.name}<br><span class="ov-col-team"><a href="tel:${area.tel}" style="color:var(--muted);text-decoration:none;">${area.tel}</a></span></div>
+      <div class="ov-names">
+        ${members.length === 0
+          ? '<div class="ov-empty">—</div>'
+          : members.map(m=>`<div class="ov-name ${m.role.toLowerCase()}${m.isMe?' me':''}" title="${m.name}"><a href="sip:${area.tel}" style="color:inherit;text-decoration:none;">${m.name}</a></div>`).join('')}
+      </div>`;
+    wrap.appendChild(col);
   });
-  // Only show AA area section if any entries have areas
-  const hasAnyAreas = Object.values(areaBuckets).some(b => b.length > 0);
-  if (hasAnyAreas || Object.values(entries).some(e => e && e.role === 'AA')) {
-    const divider = document.createElement('div');
-    divider.className = 'ov-col-divider';
-    wrap.appendChild(divider);
-    AA_AREAS.forEach(area => {
-      const members = areaBuckets[area.name];
-      const col = document.createElement('div');
-      col.className = 'ov-col';
-      col.innerHTML = `
-        <div class="ov-col-head">${area.name}<br><span class="ov-col-team"><a href="tel:${area.tel}" style="color:var(--muted);text-decoration:none;">${area.tel}</a></span></div>
-        <div class="ov-names">
-          ${members.length === 0
-            ? '<div class="ov-empty">—</div>'
-            : members.map(m=>`<div class="ov-name ${m.role.toLowerCase()}${m.isMe?' me':''}" title="${m.name}">${m.name}</div>`).join('')}
-        </div>`;
-      wrap.appendChild(col);
-    });
-  }
 
   // Init drag-drop if edit mode active
   if (editMode) initDragDrop();
