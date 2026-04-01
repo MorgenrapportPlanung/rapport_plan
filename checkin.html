@@ -405,6 +405,60 @@
     @media (max-width: 600px) {
       .ana-bar-label { min-width: 100px; font-size: .7rem; }
     }
+
+    /* SNAPSHOT HEATMAP */
+    .ana-snapshot { margin-bottom: 1.5rem; }
+    .ana-snapshot-title {
+      font-size: .95rem; font-weight: 600; color: var(--text);
+      margin-bottom: .6rem; padding-bottom: .4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .ana-snapshot-legend {
+      display: flex; align-items: center; gap: 1.2rem;
+      margin-bottom: .8rem; flex-wrap: wrap;
+    }
+    .ana-snapshot-legend-item {
+      display: flex; align-items: center; gap: .35rem;
+      font-size: .75rem; color: var(--muted);
+    }
+    .ana-snapshot-legend-dot {
+      width: 12px; height: 12px; border-radius: 4px;
+    }
+    .ana-snapshot-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: .6rem;
+    }
+    @media (max-width: 600px) {
+      .ana-snapshot-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .ana-snapshot-block {
+      border-radius: 10px; padding: .7rem .5rem;
+      text-align: center; cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color .2s, transform .1s;
+    }
+    .ana-snapshot-block:active { transform: scale(.97); }
+    .ana-snapshot-block.selected { border-color: var(--text); }
+    .ana-snapshot-block-name {
+      font-size: .85rem; font-weight: 600; color: var(--text);
+      margin-bottom: .2rem;
+    }
+    .ana-snapshot-block-info {
+      font-size: .7rem; color: rgba(255,255,255,.7);
+    }
+    .ana-snapshot-block-arrow {
+      font-size: .8rem; font-weight: 700;
+    }
+    .ana-snapshot-detail {
+      margin-top: .8rem; padding: .8rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; display: none;
+    }
+    .ana-snapshot-detail.visible { display: block; }
+    .ana-snapshot-detail-title {
+      font-size: .85rem; font-weight: 600; color: var(--text);
+      margin-bottom: .5rem;
+    }
   </style>
 </head>
 <body>
@@ -1122,6 +1176,54 @@ function buildWeekdayDetail(matchFn, roleClass) {
   return h;
 }
 
+let anaSelectedSnapshot = null;
+
+function toggleSnapshot(loc) {
+  const detailEl = document.getElementById('ana-snapshot-detail');
+  const blocks = document.querySelectorAll('.ana-snapshot-block');
+
+  // Toggle off if already selected
+  if (anaSelectedSnapshot === loc) {
+    anaSelectedSnapshot = null;
+    blocks.forEach(b => b.classList.remove('selected'));
+    detailEl.classList.remove('visible');
+    detailEl.innerHTML = '';
+    return;
+  }
+
+  anaSelectedSnapshot = loc;
+  blocks.forEach(b => b.classList.toggle('selected', b.dataset.loc === loc));
+
+  // Build weekday breakdown from raw entries (only date+time filter)
+  const detail = buildWeekdayDetail(
+    e => e.fromName === loc || e.toName === loc, 'ua'
+  );
+
+  // Also show direction per weekday
+  const dayIn = {}, dayOut = {};
+  anaRawEntries.forEach(e => {
+    if (e.toName === loc) dayIn[e.weekday] = (dayIn[e.weekday] || 0) + 1;
+    if (e.fromName === loc) dayOut[e.weekday] = (dayOut[e.weekday] || 0) + 1;
+  });
+
+  let dirHtml = '<div style="margin-top:.5rem;">';
+  DAY_ORDER.forEach(d => {
+    const inC = dayIn[d] || 0;
+    const outC = dayOut[d] || 0;
+    if (inC === 0 && outC === 0) return;
+    dirHtml += `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;font-size:.7rem;">
+      <div style="width:28px;text-align:right;color:var(--muted);">${DAY_LABELS_DE[d]}</div>
+      <span style="color:#f87171;">↑${inC}</span>
+      <span style="color:#a78bfa;">↓${outC}</span>
+      <span style="color:var(--muted);">netto: ${inC - outC > 0 ? '+' : ''}${inC - outC}</span>
+    </div>`;
+  });
+  dirHtml += '</div>';
+
+  detailEl.innerHTML = `<div class="ana-snapshot-detail-title">${loc} — Wochentag-Verteilung</div>${detail}${dirHtml}`;
+  detailEl.classList.add('visible');
+}
+
 function toggleBarDetail(el) {
   el.closest('.ana-bar-wrap').classList.toggle('open');
 }
@@ -1190,6 +1292,49 @@ async function loadAnalytics() {
     }
 
     statusEl.textContent = `${allEntries.length} Änderungen an ${totalDays} Tagen`;
+
+    // ── Snapshot heatmap ────────────────────────────────
+    const locChanges = {};
+    const locNet = {}; // positive = gains people, negative = loses people
+    allEntries.forEach(e => {
+      locChanges[e.fromName] = (locChanges[e.fromName] || 0) + 1;
+      locChanges[e.toName] = (locChanges[e.toName] || 0) + 1;
+      locNet[e.toName] = (locNet[e.toName] || 0) + 1;
+      locNet[e.fromName] = (locNet[e.fromName] || 0) - 1;
+    });
+    const maxLocChanges = Math.max(...Object.values(locChanges), 1);
+
+    let html = '<div class="ana-snapshot">';
+    html += '<div class="ana-snapshot-title">Planungsqualität pro Ort</div>';
+    html += '<div class="ana-snapshot-legend">';
+    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(120,70%,45%,.4)"></div>Gut</div>';
+    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(60,70%,45%,.4)"></div>Auffällig</div>';
+    html += '<div class="ana-snapshot-legend-item"><div class="ana-snapshot-legend-dot" style="background:hsla(0,70%,45%,.4)"></div>Problematisch</div>';
+    html += '<div class="ana-snapshot-legend-item" style="margin-left:.5rem;">↑ = zu wenig geplant</div>';
+    html += '<div class="ana-snapshot-legend-item">↓ = zu viel geplant</div>';
+    html += '</div>';
+    html += '<div class="ana-snapshot-grid">';
+
+    // Show all rooms that appear in data, plus any with 0 changes (greyed)
+    const allRooms = [...new Set([...ALL_LOC_NAMES, ...Object.keys(locChanges)])];
+    allRooms.forEach(loc => {
+      const count = locChanges[loc] || 0;
+      const net = locNet[loc] || 0;
+      const ratio = count / maxLocChanges;
+      const hue = 120 - (ratio * 120); // 120=green → 0=red
+      const bg = count > 0 ? `hsla(${hue},70%,45%,.4)` : 'rgba(255,255,255,.05)';
+      const arrow = net > 0 ? '↑' : net < 0 ? '↓' : '—';
+      const arrowColor = net > 0 ? '#f87171' : net < 0 ? '#a78bfa' : 'var(--muted)';
+      html += `<div class="ana-snapshot-block" style="background:${bg}" onclick="toggleSnapshot('${loc.replace(/'/g,"\\'")}')" data-loc="${loc}">
+        <div class="ana-snapshot-block-name">${loc}</div>
+        <div class="ana-snapshot-block-info">
+          ${count}× <span class="ana-snapshot-block-arrow" style="color:${arrowColor}">${arrow}</span>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+    html += '<div class="ana-snapshot-detail" id="ana-snapshot-detail"></div>';
+    html += '</div>';
 
     // Chart 1: Most frequent moves — grouped by from→to pair
     const moveCounts = {};
